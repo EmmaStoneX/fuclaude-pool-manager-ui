@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import useApi from '../hooks/useApi';
 import { LoginPayload, LoginResponse } from '../types';
-import EmailCard from '../components/EmailCard';
+import EmailCard, { maskEmail } from '../components/EmailCard';
 import Modal from '../components/Modal';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { generateRandomId } from '../utils/randomId';
@@ -35,7 +35,7 @@ const UserView: React.FC = () => {
         });
     }
   }, [fetchEmails, workerUrlCtx?.workerUrl]);
-  
+
   const handleLogin = async (mode: 'random' | 'specific', email?: string, uniqueNameVal?: string, expiresInVal?: string) => {
     if (!toastCtx) return;
     const payload: LoginPayload = { mode };
@@ -50,7 +50,7 @@ const UserView: React.FC = () => {
 
     const expiresInNum = expiresInVal ? parseInt(expiresInVal, 10) : undefined;
     if (expiresInNum !== undefined && !isNaN(expiresInNum)) {
-        payload.expires_in = expiresInNum;
+      payload.expires_in = expiresInNum;
     }
 
 
@@ -119,7 +119,7 @@ const UserView: React.FC = () => {
         onClose={() => { setShowUniqueNameModal(false); setUniqueName(''); setExpiresIn(''); }}
         title="输入会话隔离标识"
       >
-        <p>为账户 <strong>{selectedEmailForLogin}</strong> 设置一个唯一的会话标识。</p>
+        <p>为账户 <strong>{selectedEmailForLogin ? maskEmail(selectedEmailForLogin) : ''}</strong> 设置一个唯一的会话标识。</p>
         <div className="form-group">
           <label htmlFor="uniqueNameInput">隔离密码 / Unique Name:</label>
           <input
@@ -136,18 +136,18 @@ const UserView: React.FC = () => {
           </p>
         </div>
         <div className="form-group">
-            <label htmlFor="expiresInInput">令牌有效期 (秒):</label>
-            <input
-                type="number"
-                id="expiresInInput"
-                value={expiresIn}
-                onChange={(e) => setExpiresIn(e.target.value)}
-                placeholder="留空则使用默认设置"
-                aria-describedby="expiresInHint"
-            />
-            <p className="hint" id="expiresInHint">
-                可选。指定登录令牌的有效时间（秒）。会被管理员设置的最大值限制。
-            </p>
+          <label htmlFor="expiresInInput">令牌有效期 (秒):</label>
+          <input
+            type="number"
+            id="expiresInInput"
+            value={expiresIn}
+            onChange={(e) => setExpiresIn(e.target.value)}
+            placeholder="留空则使用默认设置"
+            aria-describedby="expiresInHint"
+          />
+          <p className="hint" id="expiresInHint">
+            可选。指定登录令牌的有效时间（秒）。会被管理员设置的最大值限制。
+          </p>
         </div>
         <div className="modal-actions">
           <button onClick={handleSpecificLoginSubmit} disabled={isLoading || !uniqueName.trim()}>

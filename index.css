@@ -1,204 +1,251 @@
+/* ========================================
+   Fluent 2.0 Design System - FuClaude Pool Manager
+   ======================================== */
 
 :root {
-    --bg-color: #FFFBF0; /* Creamy Floral White - main page background */
-    --text-color: #5D4037; /* Dark Brown - for general text */
-    --primary-color: #FF7043; /* Deep Orange - for buttons, links, active states */
-    --primary-hover-color: #F4511E; /* Darker Deep Orange - for hover states */
-    --secondary-color: #FFFFFF; /* White - for main content container background */
-    --card-bg-color: #FFF8E1; /* Cornsilk - for sections, cards, modal background */
-    --border-color: #FFE0B2; /* Light Orange/Pale Peach - for subtle borders */
-    --input-bg-color: #FFFFFF; /* White - for input fields */
-    --input-border-color: #FFCC80; /* Lighter Orange - for input borders */
-    --input-focus-border-color: var(--primary-color); /* Orange for focused inputs */
-    --error-color: #D32F2F; /* Softer Red */
-    --success-color: #388E3C; /* Softer Green */
-    --info-color: #0288D1; /* Softer Blue */
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* ===== Fluent 2.0 Color Tokens ===== */
+    --color-brand-primary: #0078D4;
+    --color-brand-primary-hover: #106EBE;
+    --color-brand-primary-active: #005A9E;
 
-    /* Derived or specific element colors */
-    --hint-text-color: #A1887F; /* Light brown/grey for hints */
-    --info-message-bg: #FFF3E0; /* Light orange for info messages */
-    --info-message-text: var(--text-color);
-    --info-message-border: var(--border-color);
-    --email-card-bg: #FFFFFF;
-    --email-card-border: var(--border-color);
-    --email-card-hover-bg: #FFFDF5;
-    --email-card-hover-border: var(--primary-color);
-    --email-card-hover-shadow: 0 4px 8px rgba(255, 112, 67, 0.15); /* Soft orange shadow */
-    --admin-tab-hover-bg: #FFF5E0; /* Very light orange for tab hover */
-    --table-header-bg: #FFE0B2; /* Light orange for table headers */
-    --table-header-text: var(--primary-color); /* Orange text for table headers */
-    --disabled-bg-color: #F5F5F5;
-    --disabled-text-color: #BDBDBD;
-    --disabled-border-color: #E0E0E0;
-    --modal-overlay-bg: rgba(255, 248, 225, 0.8); /* Semi-transparent Cornsilk */
-    --shadow-color-light: rgba(0, 0, 0, 0.1);
-    --config-panel-bg: var(--card-bg-color);
+    /* Neutral colors */
+    --color-neutral-background-1: #FFFFFF;
+    --color-neutral-background-2: #F5F5F5;
+    --color-neutral-background-3: #F3F3F3;
+    --color-neutral-background-subtle: rgba(249, 249, 249, 0.85);
+    --color-neutral-foreground-1: #242424;
+    --color-neutral-foreground-2: #424242;
+    --color-neutral-foreground-3: #616161;
+    --color-neutral-foreground-disabled: #A0A0A0;
+    --color-neutral-stroke-1: rgba(0, 0, 0, 0.08);
+    --color-neutral-stroke-2: rgba(0, 0, 0, 0.12);
+
+    /* Semantic colors */
+    --color-status-danger: #D32F2F;
+    --color-status-danger-hover: #C62828;
+    --color-status-success: #107C10;
+    --color-status-warning: #FDB022;
+    --color-status-info: #0078D4;
+
+    /* Effects */
+    --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --shadow-4: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-8: 0 8px 16px rgba(0, 0, 0, 0.08);
+    --shadow-16: 0 16px 32px rgba(0, 0, 0, 0.12);
+
+    /* Border radius */
+    --radius-small: 4px;
+    --radius-medium: 6px;
+    --radius-large: 8px;
+    --radius-xlarge: 12px;
+
+    /* Typography */
+    --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-size-base: 14px;
+    --font-size-small: 12px;
+    --font-size-large: 16px;
+    --font-size-title: 20px;
+    --font-size-hero: 28px;
+    --font-weight-regular: 400;
+    --font-weight-semibold: 600;
+
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 12px;
+    --spacing-l: 16px;
+    --spacing-xl: 24px;
+    --spacing-xxl: 32px;
+
+    /* Transitions */
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Global Styles ===== */
+* {
+    box-sizing: border-box;
 }
 
 body {
     margin: 0;
     font-family: var(--font-family);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-foreground-1);
+    background-color: var(--color-neutral-background-3);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
 }
 
 #root {
     display: flex;
     flex-direction: column;
-    align-items: center;
     min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
 }
 
+/* ===== App Container ===== */
 .app-container {
     width: 100%;
-    max-width: 900px;
-    background-color: var(--secondary-color);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px var(--shadow-color-light);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
+/* ===== Mica Header ===== */
 .main-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-m) var(--spacing-l);
+    margin-bottom: var(--spacing-xl);
+    background: var(--color-neutral-background-subtle);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--color-neutral-stroke-1);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-2);
 }
 
 .logo-section {
     display: flex;
     align-items: center;
+    gap: var(--spacing-m);
 }
 
 .logo-section .icon {
-    font-size: 2.2rem; /* Adjusted for balance */
-    margin-right: 10px;
-    color: var(--primary-color);
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 120, 212, 0.3));
 }
 
 .logo-section h1 {
-    color: var(--primary-color);
-    font-size: 1.6rem; /* Adjusted for balance */
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-brand-primary);
     margin: 0;
 }
 
 .controls-section {
     display: flex;
     align-items: center;
-    min-width: 0; /* Allow shrinking */
+    gap: var(--spacing-m);
 }
 
 .current-worker-url-display {
-    font-size: 0.85em;
-    color: var(--hint-text-color);
-    margin-right: 15px;
-    white-space: nowrap;
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-foreground-3);
+    background: rgba(0, 0, 0, 0.04);
+    padding: var(--spacing-xs) var(--spacing-s);
+    border-radius: var(--radius-small);
+    max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 250px; /* Increased max-width */
-    flex-shrink: 1; /* Allow shrinking if needed */
+    white-space: nowrap;
 }
 
-
 .config-toggle-button {
-    background: none;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
     border: none;
-    color: var(--primary-color);
-    font-size: 1.8rem; /* Larger gear icon */
+    border-radius: var(--radius-small);
+    color: var(--color-neutral-foreground-2);
+    font-size: 1.4rem;
     cursor: pointer;
-    padding: 0 5px; /* Minimal padding */
-    line-height: 1; /* Ensure icon aligns well */
-    margin:0; /* Reset margin from default button */
+    transition: all var(--transition-fast);
 }
 
 .config-toggle-button:hover {
-    color: var(--primary-hover-color);
-    background: none; /* Override general button hover */
-    box-shadow: none; /* Override general button hover */
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-brand-primary);
 }
 
-
-h1, h2, h3 {
-    color: var(--primary-color);
-    margin-top: 0;
+/* ===== Typography ===== */
+h1,
+h2,
+h3,
+h4 {
+    margin: 0;
+    color: var(--color-neutral-foreground-1);
 }
 
-/* Ensure global H1 (if any outside logo) uses text-color or is more specific */
-h1 { 
-    color: var(--text-color); 
+h2 {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-brand-primary);
+    margin-bottom: var(--spacing-l);
 }
 
+h3 {
+    font-size: var(--font-size-large);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-m);
+}
 
+/* ===== Cards and Sections ===== */
+.view-section,
+.auth-section,
+.admin-action-section,
 .config-panel {
-    margin-bottom: 25px;
-    padding: 15px;
-    background-color: var(--config-panel-bg);
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    animation: fadeIn 0.3s ease-out;
+    background: var(--color-neutral-background-1);
+    border: 1px solid var(--color-neutral-stroke-1);
+    border-radius: var(--radius-large);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-l);
+    box-shadow: var(--shadow-2);
 }
 
-.config-panel-actions {
-    margin-top: 15px;
-    display: flex;
-    justify-content: flex-start; /* Or flex-end if you prefer */
-}
-
-.config-panel-actions button {
-    margin-top: 0; /* Override general button margin if any was set by mistake */
-}
-
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-
-.auth-section, .view-section, .admin-action-section {
-    margin-bottom: 25px;
-    padding: 15px;
-    background-color: var(--card-bg-color);
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-}
-
+/* ===== Form Elements ===== */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-l);
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: var(--text-color);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-foreground-1);
+    margin-bottom: var(--spacing-xs);
 }
 
 input[type="text"],
 input[type="password"],
+input[type="number"],
+input[type="email"],
 textarea {
-    width: calc(100% - 22px);
-    padding: 10px;
-    background-color: var(--input-bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--input-border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease-in-out;
+    width: 100%;
+    padding: var(--spacing-s) var(--spacing-m);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    color: var(--color-neutral-foreground-1);
+    background: var(--color-neutral-background-1);
+    border: 1px solid var(--color-neutral-stroke-2);
+    border-radius: var(--radius-small);
+    transition: all var(--transition-fast);
+    outline: none;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
+input:hover,
+textarea:hover {
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+input:focus,
 textarea:focus {
-    outline: none;
-    border-color: var(--input-focus-border-color);
-    box-shadow: 0 0 0 2px rgba(255, 112, 67, 0.2); /* Orange glow on focus */
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.15);
+}
+
+input:disabled,
+textarea:disabled {
+    background: var(--color-neutral-background-2);
+    color: var(--color-neutral-foreground-disabled);
+    cursor: not-allowed;
 }
 
 textarea {
@@ -206,376 +253,468 @@ textarea {
     resize: vertical;
 }
 
-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    margin-right: 10px;
-}
-button:last-child {
-    margin-right: 0;
+.hint {
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-foreground-3);
+    margin-top: var(--spacing-xs);
 }
 
+/* ===== Buttons ===== */
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s) var(--spacing-l);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    font-family: var(--font-family);
+    color: white;
+    background: var(--color-brand-primary);
+    border: none;
+    border-radius: var(--radius-small);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    outline: none;
+}
 
 button:hover {
-    background-color: var(--primary-hover-color);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: var(--color-brand-primary-hover);
+    box-shadow: var(--shadow-4);
+}
+
+button:active {
+    background: var(--color-brand-primary-active);
+    transform: scale(0.98);
 }
 
 button:disabled {
-    background-color: var(--disabled-bg-color);
-    color: var(--disabled-text-color);
-    border: 1px solid var(--disabled-border-color);
+    background: var(--color-neutral-background-2);
+    color: var(--color-neutral-foreground-disabled);
     cursor: not-allowed;
     box-shadow: none;
+    transform: none;
 }
 
 button.secondary {
-    background-color: #FFB74D; /* Lighter Orange for secondary */
-    color: var(--text-color);
-}
-button.secondary:hover {
-    background-color: #FFA726; /* Slightly darker Lighter Orange */
-}
-button.secondary:disabled {
-    background-color: var(--disabled-bg-color);
-    color: var(--disabled-text-color);
-    border: 1px solid var(--disabled-border-color);
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-neutral-foreground-1);
 }
 
+button.secondary:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
 
 button.danger {
-    background-color: var(--error-color);
-    color: white;
+    background: var(--color-status-danger);
 }
+
 button.danger:hover {
-    background-color: #C62828; /* Darker Red */
+    background: var(--color-status-danger-hover);
 }
 
-
-.hint, .error-message, .success-message, .info-message {
-    font-size: 0.9em;
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-top: 5px;
-}
-
-.hint {
-    color: var(--hint-text-color);
-}
-
-.error-message {
-    color: white;
-    background-color: var(--error-color);
-}
-
-.success-message {
-    color: white;
-    background-color: var(--success-color);
-}
-
-.info-message {
-    background-color: var(--info-message-bg);
-    color: var(--info-message-text);
-    border: 1px solid var(--info-message-border);
-}
-
+/* ===== Email Cards ===== */
 .email-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--spacing-m);
+    margin-top: var(--spacing-l);
 }
 
 .email-card {
-    background-color: var(--email-card-bg);
-    padding: 15px;
-    border-radius: 6px;
-    border: 1px solid var(--email-card-border);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    position: relative;
+    padding: var(--spacing-l);
+    background: var(--color-neutral-background-1);
+    border: 1px solid var(--color-neutral-stroke-1);
+    border-radius: var(--radius-medium);
     text-align: center;
-    color: var(--text-color);
+    color: var(--color-neutral-foreground-1);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    overflow: hidden;
+}
+
+.email-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius-medium);
+    padding: 1px;
+    background: linear-gradient(135deg, transparent, var(--color-brand-primary), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
 }
 
 .email-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--email-card-hover-shadow);
-    border-color: var(--email-card-hover-border);
-    background-color: var(--email-card-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-8);
+    border-color: var(--color-brand-primary);
 }
 
+.email-card:hover::before {
+    opacity: 0.6;
+}
+
+.email-card:focus {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+}
+
+/* ===== Modal ===== */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--modal-overlay-bg);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
 }
 
 .modal-content {
-    background-color: var(--card-bg-color);
-    padding: 25px;
-    border-radius: 8px;
-    min-width: 300px;
-    max-width: 500px;
-    box-shadow: 0 5px 15px var(--shadow-color-light);
-    border: 1px solid var(--border-color);
+    background: var(--color-neutral-background-1);
+    border-radius: var(--radius-xlarge);
+    padding: var(--spacing-xl);
+    min-width: 360px;
+    max-width: 480px;
+    box-shadow: var(--shadow-16);
+    animation: slideUp 0.25s ease-out;
+}
+
+.modal-content h3 {
+    color: var(--color-neutral-foreground-1);
+    margin-bottom: var(--spacing-l);
 }
 
 .modal-actions {
-    margin-top: 20px;
-    text-align: right;
-}
-.modal-actions button {
-    margin-left: 10px; /* Add margin between modal buttons */
-    margin-right: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-xl);
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
 
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Admin Tabs ===== */
 .admin-tabs {
     display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-l);
+    border-bottom: 1px solid var(--color-neutral-stroke-1);
+    padding-bottom: var(--spacing-xs);
 }
 
 .admin-tabs button {
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    color: var(--text-color);
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-right: 0; /* Override button margin */
-    border-radius: 4px 4px 0 0;
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    background: transparent;
+    color: var(--color-neutral-foreground-2);
+    font-weight: var(--font-weight-regular);
+    padding: var(--spacing-s) var(--spacing-l);
+    border-radius: var(--radius-small) var(--radius-small) 0 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.admin-tabs button:hover {
+    background: rgba(0, 120, 212, 0.05);
+    color: var(--color-brand-primary);
+    box-shadow: none;
 }
 
 .admin-tabs button.active {
-    border-bottom-color: var(--primary-color);
-    color: var(--primary-color);
-    font-weight: bold;
+    color: var(--color-brand-primary);
+    font-weight: var(--font-weight-semibold);
+    border-bottom-color: var(--color-brand-primary);
+    background: transparent;
 }
 
-.admin-tabs button:hover:not(.active) {
-    background-color: var(--admin-tab-hover-bg);
-    color: var(--primary-color);
-}
-
-
+/* ===== Tables ===== */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    margin-top: var(--spacing-l);
 }
 
-th, td {
-    border: 1px solid var(--border-color);
-    padding: 10px;
+th,
+td {
+    padding: var(--spacing-m);
     text-align: left;
-    color: var(--text-color);
+    border-bottom: 1px solid var(--color-neutral-stroke-1);
 }
 
 th {
-    background-color: var(--table-header-bg);
-    color: var(--table-header-text);
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-foreground-2);
+    background: var(--color-neutral-background-2);
+    font-size: var(--font-size-small);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.loading-indicator {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.2em;
-    color: var(--primary-color);
+tr:hover {
+    background: rgba(0, 120, 212, 0.02);
 }
 
-.toast-notification {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 20px;
-    border-radius: 6px;
-    color: white;
-    font-size: 1rem;
-    z-index: 2000;
-    box-shadow: 0 2px 8px var(--shadow-color-light);
-}
-
-.toast-success {
-    background-color: var(--success-color);
-}
-
-.toast-error {
-    background-color: var(--error-color);
-}
-
-.toast-info {
-    background-color: var(--info-color);
-}
-
-.refresh-button {
-    font-size: 0.9rem;
-    padding: 5px 10px;
-    margin-left: 10px;
-}
-
-.logout-button {
-    margin-left: 10px;
-    padding: 5px 10px;
-}
-
-/* Footer Styles */
-.main-footer {
-  padding: 1rem;
-  text-align: center;
-  color: #666;
-  border-top: 1px solid #eaeaea;
-  margin-top: auto; /* Pushes footer to the bottom */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.main-footer a {
-  color: #555;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  transition: color 0.2s ease-in-out;
-}
-
-.main-footer a:hover {
-  color: #000;
-}
-
-.github-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.footer-separator {
-  color: #ccc;
-}
-
-/* Account Management Tab Styles */
-.account-management-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    align-items: center;
-}
-
-.account-management-controls .search-input {
-    flex-grow: 1;
-    padding: 8px 12px;
-    font-size: 0.95rem;
-}
-
-.account-management-controls button {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-}
-
+/* ===== Account Table (Grid Layout) ===== */
 .account-table {
     display: grid;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border: 1px solid var(--color-neutral-stroke-1);
+    border-radius: var(--radius-medium);
     overflow: hidden;
 }
 
 .account-table-header,
 .account-table-row {
     display: grid;
-    grid-template-columns: 20px 1fr 2fr 120px; /* Checkbox, Email, SK, Actions */
-    gap: 10px;
+    grid-template-columns: 24px 1fr 2fr 140px;
+    gap: var(--spacing-m);
     align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-m);
+    border-bottom: 1px solid var(--color-neutral-stroke-1);
+}
+
+.account-table-header {
+    background: var(--color-neutral-background-2);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-small);
+    color: var(--color-neutral-foreground-2);
 }
 
 .account-table-row:last-child {
     border-bottom: none;
 }
 
-.account-table-header {
-    background-color: var(--table-header-bg);
-    font-weight: bold;
-    color: var(--table-header-text);
-    padding-left: 10px; /* Align with content */
+.account-table-row:hover {
+    background: rgba(0, 120, 212, 0.02);
 }
 
 .account-table-row input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: transparent;
+    background: transparent;
     border: 1px solid transparent;
-    padding: 8px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.account-table-row input[type="text"]:disabled {
-    color: var(--text-color);
-    cursor: default;
+    padding: var(--spacing-s);
+    border-radius: var(--radius-small);
 }
 
 .account-table-row input[type="text"]:not(:disabled) {
-    border-color: var(--input-focus-border-color);
-    background-color: var(--input-bg-color);
-}
-
-.account-table-row input[type="text"]:focus {
-    white-space: normal;
-    overflow: visible;
+    border-color: var(--color-brand-primary);
+    background: var(--color-neutral-background-1);
 }
 
 .account-table-row .action-buttons {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-xs);
     justify-content: flex-end;
 }
 
 .account-table-row .action-buttons button {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-}
-
-.account-table-row .action-buttons button.cancel {
-    background-color: #757575; /* Grey for cancel */
-}
-.account-table-row .action-buttons button.cancel:hover {
-    background-color: #616161; /* Darker Grey */
+    padding: var(--spacing-xs) var(--spacing-s);
+    font-size: var(--font-size-small);
 }
 
 .add-new-row {
-    background-color: #fdfaf3;
+    background: rgba(0, 120, 212, 0.03);
 }
 
-.add-new-row .action-buttons button {
-    font-size: 1.2rem;
-    padding: 2px 10px;
+/* ===== Account Management Controls ===== */
+.account-management-controls {
+    display: flex;
+    gap: var(--spacing-s);
+    margin-bottom: var(--spacing-l);
+    flex-wrap: wrap;
 }
 
-.account-table-row input[type="checkbox"] {
-    width: 1.1em;
-    height: 1.1em;
+.account-management-controls .search-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.account-management-controls button {
+    flex-shrink: 0;
+}
+
+/* ===== Messages ===== */
+.error-message,
+.success-message,
+.info-message {
+    padding: var(--spacing-m);
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-base);
+    margin: var(--spacing-s) 0;
+}
+
+.error-message {
+    background: rgba(211, 47, 47, 0.1);
+    color: var(--color-status-danger);
+    border: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+.success-message {
+    background: rgba(16, 124, 16, 0.1);
+    color: var(--color-status-success);
+    border: 1px solid rgba(16, 124, 16, 0.2);
+}
+
+.info-message {
+    background: rgba(0, 120, 212, 0.08);
+    color: var(--color-brand-primary);
+    border: 1px solid rgba(0, 120, 212, 0.15);
+}
+
+/* ===== Loading Indicator ===== */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    color: var(--color-brand-primary);
+    font-size: var(--font-size-base);
+}
+
+/* ===== Toast Notifications ===== */
+.toast-notification {
+    position: fixed;
+    bottom: var(--spacing-xl);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--spacing-m) var(--spacing-xl);
+    border-radius: var(--radius-medium);
+    color: white;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-8);
+    z-index: 2000;
+    animation: slideUp 0.25s ease-out;
+}
+
+.toast-success {
+    background: var(--color-status-success);
+}
+
+.toast-error {
+    background: var(--color-status-danger);
+}
+
+.toast-info {
+    background: var(--color-brand-primary);
+}
+
+/* ===== Footer ===== */
+.main-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-m);
+    padding: var(--spacing-l);
+    margin-top: auto;
+    border-top: 1px solid var(--color-neutral-stroke-1);
+    color: var(--color-neutral-foreground-3);
+    font-size: var(--font-size-small);
+}
+
+.main-footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-neutral-foreground-2);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.main-footer a:hover {
+    color: var(--color-brand-primary);
+}
+
+.github-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.footer-separator {
+    color: var(--color-neutral-stroke-2);
+}
+
+/* ===== Utility ===== */
+.refresh-button,
+.logout-button {
+    padding: var(--spacing-xs) var(--spacing-m);
+    font-size: var(--font-size-small);
+}
+
+/* ===== Config Panel ===== */
+.config-panel {
+    animation: slideUp 0.25s ease-out;
+}
+
+.config-panel-actions {
+    display: flex;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-l);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .app-container {
+        padding: var(--spacing-l);
+    }
+
+    .main-header {
+        flex-direction: column;
+        gap: var(--spacing-m);
+        text-align: center;
+    }
+
+    .controls-section {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .current-worker-url-display {
+        display: none;
+    }
+
+    .email-list {
+        grid-template-columns: 1fr;
+    }
+
+    .account-table-header,
+    .account-table-row {
+        grid-template-columns: 24px 1fr 100px;
+    }
+
+    .account-table-row input[type="text"]:nth-child(3) {
+        display: none;
+    }
+}
+
+/* ===== Checkbox Styling ===== */
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-brand-primary);
     cursor: pointer;
 }
