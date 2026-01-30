@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useContext } from 'react';
 import useApi from '../../hooks/useApi';
-import { EmailSkMapEntry, AdminAddPayload, AdminUpdatePayload, AdminDeletePayload, AdminBatchPayload, AdminBatchApiResponse, AdminBatchAction, AdminApiResponse, HealthCheckResponse, AdminRequestBase } from '../../types';
+import { EmailSkMapEntry, AdminAddPayload, AdminUpdatePayload, AdminBatchPayload, AdminBatchApiResponse, AdminBatchAction, AdminApiResponse, HealthCheckResponse, AdminRequestBase } from '../../types';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { ToastContext } from '../../contexts/ToastContext';
 import { API_PATHS } from '../../utils/apiConstants';
@@ -286,31 +286,38 @@ const AccountManagementTab: React.FC = () => {
                     background-color: #138496;
                 }
                 .status-badge {
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 0.85em;
-                    font-weight: bold;
+                    padding: 2px 10px;
+                    border-radius: 12px; /* Pill shape */
+                    font-size: 12px;
+                    font-weight: 500;
                     white-space: nowrap;
-                    display: inline-block;
+                    display: inline-flex;
+                    align-items: center;
+                    border: 1px solid transparent;
+                    transition: all 0.2s;
                 }
                 .status-badge.valid {
-                    background-color: #d4edda;
-                    color: #155724;
+                    background-color: #f6ffed;
+                    color: #52c41a;
+                    border-color: #b7eb8f;
                 }
                 .status-badge.invalid {
-                    background-color: #f8d7da;
-                    color: #721c24;
+                    background-color: #fff1f0;
+                    color: #f5222d;
+                    border-color: #ffa39e;
                 }
                 .status-badge.unknown {
-                    background-color: #e2e3e5;
-                    color: #383d41;
+                    background-color: #f5f5f5;
+                    color: #d9d9d9;
+                    border-color: #d9d9d9;
                 }
+                /* Removed extensive red background for invalid rows to keep UI clean */
                 .row-invalid {
-                    background-color: rgba(248, 215, 218, 0.3);
+                    /* Only slight emphasis if needed, or remove completely */
                 }
                 .input-invalid {
-                    border-color: #dc3545 !important;
-                    background-color: #fff8f8;
+                    border-color: #ff4d4f !important;
+                    background-color: #fff2f0;
                 }
             `}</style>
         </div>
