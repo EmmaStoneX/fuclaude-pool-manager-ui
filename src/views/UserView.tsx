@@ -173,6 +173,14 @@ const UserView: React.FC = () => {
       <ContributeModal
         isOpen={showContributeModal}
         onClose={() => setShowContributeModal(false)}
+        onSuccess={() => {
+          // Re-fetch emails after successful contribution
+          if (workerUrlCtx?.workerUrl) {
+            fetchEmails(API_PATHS.GET_EMAILS).then(data => {
+              if (data?.emails) setEmails(data.emails);
+            });
+          }
+        }}
       />
 
       <style>{`

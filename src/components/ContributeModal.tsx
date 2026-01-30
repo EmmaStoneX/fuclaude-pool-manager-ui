@@ -7,9 +7,10 @@ import { ToastContext } from '../contexts/ToastContext';
 interface ContributeModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) => {
+const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [email, setEmail] = useState('');
     const [sk, setSk] = useState('');
     const { callApi, isLoading } = useApi<{ email: string; sk: string }, { message: string, email: string }>();
@@ -36,6 +37,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
                 toastCtx?.showToast('账号投喂成功！感谢您的贡献 ❤️', 'success');
                 setEmail('');
                 setSk('');
+                if (onSuccess) onSuccess();
                 onClose();
             }
         } catch (error) {
