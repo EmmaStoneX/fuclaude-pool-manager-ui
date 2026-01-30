@@ -270,20 +270,88 @@ const AccountManagementTab: React.FC = () => {
                 .account-management-controls {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 10px;
+                    gap: 12px;
                     align-items: center;
-                    margin-bottom: 20px;
+                    margin-bottom: 24px;
+                    padding: 16px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    border: 1px solid #eaeaea;
+                }
+                .search-input {
+                    flex-grow: 1;
+                    padding: 8px 12px;
+                    border: 1px solid #d9d9d9;
+                    border-radius: 6px;
+                    transition: all 0.3s;
+                }
+                .search-input:focus {
+                    border-color: #40a9ff;
+                    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+                    outline: none;
                 }
                 .btn-group {
                     display: flex;
-                    gap: 5px;
+                    gap: 8px;
                 }
+                
+                /* Base button reset for this section */
+                .account-management-controls button {
+                    padding: 6px 16px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: 1px solid #d9d9d9;
+                    background-color: #fff;
+                    color: #666;
+                    font-weight: 500;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                }
+
+                /* Secondary buttons (Select All, Invert) - Clean & Subtle */
+                .account-management-controls button:hover:not(:disabled) {
+                    color: #40a9ff;
+                    border-color: #40a9ff;
+                    background-color: #fff;
+                }
+
+                /* Health Check Button - Distinct but not loud */
                 .info-btn {
-                    background-color: #17a2b8;
-                    color: white;
+                    color: #722ed1 !important; /* Purple */
+                    border-color: #d3adf7 !important;
+                    background-color: #f9f0ff !important;
                 }
-                .info-btn:hover {
-                    background-color: #138496;
+                .info-btn:hover:not(:disabled) {
+                    color: #fff !important;
+                    background-color: #722ed1 !important;
+                    border-color: #722ed1 !important;
+                    box-shadow: 0 2px 4px rgba(114, 46, 209, 0.2);
+                }
+
+                /* Delete Button - Danger */
+                .danger {
+                    color: #ff4d4f !important;
+                    border-color: #ffccc7 !important;
+                    background-color: #fff2f0 !important;
+                }
+                .danger:hover:not(:disabled) {
+                    color: #fff !important;
+                    background-color: #ff4d4f !important;
+                    border-color: #ff4d4f !important;
+                    box-shadow: 0 2px 4px rgba(255, 77, 79, 0.2);
+                }
+                
+                /* Disabled State - Universal */
+                .account-management-controls button:disabled {
+                    color: #d9d9d9 !important;
+                    border-color: #d9d9d9 !important;
+                    background-color: #f5f5f5 !important;
+                    cursor: not-allowed;
+                    box-shadow: none;
                 }
                 .status-badge {
                     padding: 2px 10px;
