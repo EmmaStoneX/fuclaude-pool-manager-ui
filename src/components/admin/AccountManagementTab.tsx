@@ -196,30 +196,37 @@ const AccountManagementTab: React.FC = () => {
             {listError && <p className="error-message">{listError}</p>}
 
             <div className="account-table">
-                <div className="account-table-header" style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
-                    <input type="checkbox" readOnly style={{ visibility: 'hidden' }} />
-                    <span>Email</span>
-                    <span>Session Key (SK)</span>
-                    <span>Status</span>
-                    <span>Actions</span>
+                <div className="account-table-header">
+                    <div className="col-checkbox"><input type="checkbox" readOnly style={{ visibility: 'hidden' }} /></div>
+                    <div className="col-email">Email</div>
+                    <div className="col-sk">Session Key (SK)</div>
+                    <div className="col-status">Status</div>
+                    <div className="col-actions">Actions</div>
                 </div>
                 {filteredList.map((item: EmailSkMapEntry) => (
-                    <div key={item.email} className={`account-table-row ${item.status && !item.status.isValid ? 'row-invalid' : ''}`} style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
-                        <input type="checkbox" checked={selectedEmails.has(item.email)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectionChange(item.email, e.target.checked)} />
-                        <input
-                            type="text"
-                            value={editingRow[item.email]?.email ?? item.email}
-                            disabled={!editingRow[item.email]}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], email: e.target.value } })}
-                        />
-                        <input
-                            type="text"
-                            value={editingRow[item.email]?.sk ?? item.sk_preview}
-                            disabled={!editingRow[item.email]}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], sk: e.target.value } })}
-                            className={item.status && !item.status.isValid ? 'input-invalid' : ''}
-                        />
-                        <div className="status-cell">
+                    <div key={item.email} className={`account-table-row ${item.status && !item.status.isValid ? 'row-invalid' : ''}`}>
+                        <div className="col-checkbox">
+                            <input type="checkbox" checked={selectedEmails.has(item.email)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectionChange(item.email, e.target.checked)} />
+                        </div>
+                        <div className="col-email" data-label="Email">
+                            <input
+                                type="text"
+                                value={editingRow[item.email]?.email ?? item.email}
+                                disabled={!editingRow[item.email]}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], email: e.target.value } })}
+                                className="editable-input"
+                            />
+                        </div>
+                        <div className="col-sk" data-label="Session Key">
+                            <input
+                                type="text"
+                                value={editingRow[item.email]?.sk ?? item.sk_preview}
+                                disabled={!editingRow[item.email]}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], sk: e.target.value } })}
+                                className={`editable-input ${item.status && !item.status.isValid ? 'input-invalid' : ''}`}
+                            />
+                        </div>
+                        <div className="col-status" data-label="Status">
                             {item.status ? (
                                 <span className={`status-badge ${item.status.isValid ? 'valid' : 'invalid'}`} title={item.status.message || (item.status.isValid ? '有效' : '无效')}>
                                     {item.status.isValid ? '✅ 有效' : '❌ 失效'}
@@ -228,45 +235,177 @@ const AccountManagementTab: React.FC = () => {
                                 <span className="status-badge unknown" title="尚未检测">-</span>
                             )}
                         </div>
-                        <div className="action-buttons">
+                        <div className="col-actions">
                             {editingRow[item.email] ? (
-                                <>
-                                    <button onClick={() => handleSave(item.email)}>保存</button>
-                                    <button onClick={handleCancel} className="cancel">取消</button>
-                                </>
+                                <div className="action-buttons-group">
+                                    <button onClick={() => handleSave(item.email)} className="save-btn">保存</button>
+                                    <button onClick={handleCancel} className="cancel-btn">取消</button>
+                                </div>
                             ) : (
-                                <button onClick={() => handleEdit(item)}>编辑</button>
+                                <button onClick={() => handleEdit(item)} className="edit-btn">编辑</button>
                             )}
                         </div>
                     </div>
                 ))}
-                <div className="account-table-row add-new-row" style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
-                    <input type="checkbox" disabled style={{ visibility: 'hidden' }} />
-                    <input
-                        type="text"
-                        placeholder="new-user@example.com"
-                        value={newAccount.email}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, email: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="sk-ant-session-..."
-                        value={newAccount.sk}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, sk: e.target.value })}
-                    />
-                    <span></span>
-                    <div className="action-buttons">
-                        <button onClick={handleAdd} disabled={!newAccount.email || !newAccount.sk}>+</button>
+
+                {/* Add New Row */}
+                <div className="account-table-row add-new-row">
+                    <div className="col-checkbox"><input type="checkbox" disabled style={{ visibility: 'hidden' }} /></div>
+                    <div className="col-email" data-label="Add Email">
+                        <input
+                            type="text"
+                            placeholder="new-user@example.com"
+                            value={newAccount.email}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, email: e.target.value })}
+                            className="editable-input"
+                        />
+                    </div>
+                    <div className="col-sk" data-label="Add SK">
+                        <input
+                            type="text"
+                            placeholder="sk-ant-session-..."
+                            value={newAccount.sk}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, sk: e.target.value })}
+                            className="editable-input"
+                        />
+                    </div>
+                    <div className="col-status"></div>
+                    <div className="col-actions">
+                        <button onClick={handleAdd} disabled={!newAccount.email || !newAccount.sk} className="add-btn">+</button>
                     </div>
                 </div>
             </div>
 
             <style>{`
+                /* Desktop Grid Layout */
                 .account-table-header, .account-table-row {
                     display: grid;
-                    gap: 10px;
+                    grid-template-columns: 40px 2fr 3fr 1fr 120px; /* Fixed column widths */
+                    gap: 12px;
                     align-items: center;
+                    padding: 8px 0;
+                    border-bottom: 1px solid #f0f0f0;
                 }
+                
+                .account-table-header {
+                    font-weight: 600;
+                    color: #595959;
+                    background: #fafafa;
+                    padding: 12px 8px;
+                    border-radius: 4px;
+                    margin-bottom: 8px;
+                }
+
+                .account-table-row {
+                    padding: 8px;
+                    transition: background 0.2s;
+                }
+                .account-table-row:hover {
+                    background-color: #fafafa;
+                }
+
+                .editable-input {
+                    width: 100%;
+                    padding: 6px 8px;
+                    border: 1px solid #d9d9d9;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                .editable-input:disabled {
+                    background: transparent;
+                    border-color: transparent;
+                    color: #333;
+                    cursor: default;
+                }
+
+                /* Mobile Card Layout */
+                @media (max-width: 768px) {
+                    .account-table-header {
+                        display: none; /* Hide headers on mobile */
+                    }
+
+                    .account-table-row {
+                        display: flex;
+                        flex-direction: column;
+                        background: white;
+                        border: 1px solid #f0f0f0;
+                        border-radius: 8px;
+                        padding: 16px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                        gap: 12px;
+                        position: relative;
+                    }
+
+                    .col-checkbox {
+                        position: absolute;
+                        top: 16px;
+                        right: 16px;
+                    }
+
+                    /* Add labels for mobile fields */
+                    .col-email::before, .col-sk::before, .col-status::before {
+                        content: attr(data-label);
+                        display: block;
+                        font-size: 12px;
+                        color: #999;
+                        margin-bottom: 4px;
+                        font-weight: 600;
+                    }
+                    
+                    .col-status {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        width: 100%;
+                    }
+                    
+                    /* Align Status Badge to start on mobile */
+                    .status-badge {
+                        margin-top: 4px;
+                    }
+
+                    .col-actions {
+                        margin-top: 8px;
+                        border-top: 1px solid #f0f0f0;
+                        padding-top: 12px;
+                        width: 100%;
+                    }
+                    
+                    .col-actions button {
+                        width: 100%;
+                        padding: 8px 0;
+                    }
+                    
+                    .action-buttons-group {
+                        display: flex;
+                        gap: 8px;
+                        width: 100%;
+                    }
+                    .action-buttons-group button {
+                        flex: 1;
+                    }
+
+                    /* Controls Section on Mobile */
+                    .account-management-controls {
+                        flex-direction: column;
+                        align-items: stretch;
+                        gap: 12px;
+                    }
+                    .search-input {
+                        width: 100%;
+                    }
+                    .btn-group {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 2fr; /* Select, Invert, Check */
+                        gap: 8px;
+                    }
+                    /* Delete button full width */
+                    .account-management-controls > button.danger {
+                        width: 100%;
+                    }
+                }
+
                 .account-management-controls {
                     display: flex;
                     flex-wrap: wrap;
@@ -296,7 +435,7 @@ const AccountManagementTab: React.FC = () => {
                 }
                 
                 /* Base button reset for this section */
-                .account-management-controls button {
+                .account-management-controls button, .action-buttons-group button, .edit-btn, .add-btn {
                     padding: 6px 16px;
                     border-radius: 6px;
                     font-size: 14px;
@@ -310,6 +449,11 @@ const AccountManagementTab: React.FC = () => {
                     align-items: center;
                     justify-content: center;
                     height: 36px;
+                }
+                .add-btn {
+                    background: #1890ff;
+                    color: white;
+                    border-color: #1890ff;
                 }
 
                 /* Secondary buttons (Select All, Invert) - Clean & Subtle */
@@ -346,13 +490,14 @@ const AccountManagementTab: React.FC = () => {
                 }
                 
                 /* Disabled State - Universal */
-                .account-management-controls button:disabled {
+                button:disabled {
                     color: #d9d9d9 !important;
                     border-color: #d9d9d9 !important;
                     background-color: #f5f5f5 !important;
                     cursor: not-allowed;
                     box-shadow: none;
                 }
+
                 .status-badge {
                     padding: 2px 10px;
                     border-radius: 12px; /* Pill shape */
