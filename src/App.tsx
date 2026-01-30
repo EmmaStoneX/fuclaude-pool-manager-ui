@@ -59,7 +59,6 @@ const AppContent: React.FC = () => {
     return <LoginPage />;
   }
 
-  const { workerUrl } = workerUrlCtx;
 
   return (
     <div className="app-container">
@@ -108,39 +107,30 @@ const AppContent: React.FC = () => {
                 .header-user-info {
                   display: flex;
                   align-items: center;
-                  gap: 10px;
-                  padding: 6px 12px;
-                  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.9) 100%);
-                  border-radius: 24px;
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                  margin-right: 8px;
+                  gap: 8px;
+                  margin-right: 12px;
                 }
                 .header-avatar-wrapper {
                   position: relative;
                   flex-shrink: 0;
                 }
                 .header-avatar {
-                  width: 32px;
-                  height: 32px;
+                  width: 28px;
+                  height: 28px;
                   border-radius: 50%;
                   object-fit: cover;
-                  border: 2px solid transparent;
-                  background: linear-gradient(white, white) padding-box,
-                              linear-gradient(135deg, #0078D4, #e94560) border-box;
-                  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
                 }
                 .header-avatar-placeholder {
-                  width: 32px;
-                  height: 32px;
+                  width: 28px;
+                  height: 28px;
                   border-radius: 50%;
-                  background: linear-gradient(135deg, #0078D4, #106EBE);
+                  background: #0078D4;
                   color: white;
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  font-size: 14px;
+                  font-size: 12px;
                   font-weight: 600;
-                  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
                 }
                 .header-provider-badge {
                   position: absolute;
@@ -188,24 +178,12 @@ const AppContent: React.FC = () => {
               `}</style>
             </div>
           )}
-          <span className="current-worker-url-display" aria-label={`Current Worker URL: ${workerUrl}`}>
-            {workerUrl}
-          </span>
-          <button
-            onClick={() => setShowConfigPanel(!showConfigPanel)}
-            className="config-toggle-button"
-            aria-label="服务配置"
-            aria-expanded={showConfigPanel}
-            title="服务配置"
-          >
-            ⚙️
-          </button>
         </div>
       </header>
 
-      {showConfigPanel && <ConfigPanel onClose={() => setShowConfigPanel(false)} />}
+      {currentView === 'admin' && showConfigPanel && <ConfigPanel onClose={() => setShowConfigPanel(false)} />}
 
-      {currentView === 'user' ? <UserView /> : <AdminView />}
+      {currentView === 'user' ? <UserView /> : <AdminView onToggleConfig={() => setShowConfigPanel(!showConfigPanel)} showConfigPanel={showConfigPanel} />}
 
       <footer className="main-footer">
         <a href="https://github.com/f14XuanLv/fuclaude-pool-manager-ui" target="_blank" rel="noopener noreferrer" aria-label="Frontend Source Code">
