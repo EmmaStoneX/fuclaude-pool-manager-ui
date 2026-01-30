@@ -96,8 +96,13 @@ const UserView: React.FC = () => {
     <main className="view-section" aria-labelledby="user-view-title">
       <h2 id="user-view-title">用户登录</h2>
       <div className="form-group">
-        <button onClick={() => handleLogin('random')} disabled={isLoading} style={{ width: '100%', padding: '15px', fontSize: '1.2rem' }}>
-          {isLoading ? '处理中...' : '🚀 随机登录'}
+        <button onClick={() => handleLogin('random')} disabled={isLoading} style={{ width: '100%', padding: '15px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          {isLoading ? '处理中...' : (
+            <>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /><path d="m12 15-3 3a2.2 2.2 0 0 1-2-.5c-1.5-1.2-2-5-2-5s3.74-.5 5-2c.7-.8.7-2 0-2.8a2.18 2.18 0 0 0-2.8 0l-3 3" /><path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-1.3 4.7l-4.2-4.2" /><path d="M15 12h2" /><path d="M12 15v2" /></svg>
+              随机登录
+            </>
+          )}
         </button>
         <p className="hint" style={{ textAlign: 'center', marginTop: '5px' }} id="random-login-hint">
           点击随机选择一个可用账户进行登录。
@@ -120,8 +125,10 @@ const UserView: React.FC = () => {
         <button
           className="contribute-trigger-btn"
           onClick={() => setShowContributeModal(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          ❤️ 投喂账号 / Contribute Account
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+          投喂账号 / Contribute Account
         </button>
       </div>
 

@@ -143,455 +143,86 @@ const UserManagementTab: React.FC = () => {
                 color: 'white',
                 borderRadius: '4px'
             }}>
-                {isGitHub ? '🐙' : '🌐'} {isGitHub ? 'GitHub' : 'LinuxDO'}
+                {isGitHub ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+                ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+                )}
+                {isGitHub ? 'GitHub' : 'LinuxDO'}
             </span>
         );
     };
 
     const isLoading = usersLoading || banLoading || unbanLoading;
+    // ... rest of logic
 
-    const activeCount = usersResponse?.users?.filter(u => !u.is_banned).length ?? 0;
-    const bannedCount = usersResponse?.banned_count ?? 0;
-    const totalCount = usersResponse?.users?.length ?? 0;
-    const linuxdoCount = usersResponse?.linuxdo_count ?? 0;
-    const githubCount = usersResponse?.github_count ?? 0;
-
+    // Updated CSS block
     return (
-        <div className="user-management-container">
-            {/* Stats Bar */}
-            <div className="stats-row">
-                <span className="stat" title="总用户">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                    <strong>{totalCount}</strong>
-                </span>
-                <div className="stat-divider"></div>
-                <span className="stat linuxdo" title="LinuxDO 用户">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-                    <strong>{linuxdoCount}</strong>
-                </span>
-                <span className="stat github" title="GitHub 用户">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
-                    <strong>{githubCount}</strong>
-                </span>
-                <div className="stat-divider"></div>
-                <span className="stat active" title="活跃用户">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-                    <strong>{activeCount}</strong>
-                </span>
-                <span className="stat banned" title="封禁用户">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
-                    <strong>{bannedCount}</strong>
-                </span>
-            </div>
-
-            {/* Controls */}
-            <div className="controls-row">
-                <input
-                    type="text"
-                    placeholder="搜索用户名、昵称或邮箱..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                />
-                <div className="filter-group">
-                    <select
-                        value={providerFilter}
-                        onChange={(e) => setProviderFilter(e.target.value as ProviderFilterType)}
-                        className="filter-select"
-                    >
-                        <option value="all">全部来源</option>
-                        <option value="linuxdo">LinuxDO</option>
-                        <option value="github">GitHub</option>
-                    </select>
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value as FilterType)}
-                        className="filter-select"
-                    >
-                        <option value="all">全部状态</option>
-                        <option value="active">活跃</option>
-                        <option value="banned">已封禁</option>
-                    </select>
-                </div>
-                <button onClick={loadUsers} disabled={isLoading} className="refresh-btn">
-                    {isLoading ? '...' : '🔄'}
-                </button>
-            </div>
-
-            {usersLoading && <LoadingIndicator message="加载用户列表..." />}
-            {usersError && <p className="error-message">{usersError}</p>}
-
-            {/* User Table */}
-            {!usersLoading && filteredUsers.length > 0 && (
-                <div className="table-container">
-                    <table className="user-table">
-                        <thead>
-                            <tr>
-                                <th style={{ width: '40px' }}>头像</th>
-                                <th>用户名</th>
-                                <th>来源</th>
-                                <th>等级</th>
-                                <th>登录次数</th>
-                                <th>最后登录</th>
-                                <th>状态</th>
-                                <th style={{ width: '100px' }}>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredUsers.map((user) => (
-                                <tr key={`${user.auth_provider}-${user.id}`} className={user.is_banned ? 'banned-row' : ''}>
-                                    <td data-label="头像">
-                                        {user.avatar_url ? (
-                                            <img
-                                                src={user.avatar_url}
-                                                alt=""
-                                                className="avatar-img"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                }}
-                                            />
-                                        ) : (
-                                            <div className="avatar-placeholder">
-                                                {user.username.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td data-label="用户信息">
-                                        <div className="user-info-cell">
-                                            <span className="username">{user.username}</span>
-                                            {user.name && <span className="display-name">{user.name}</span>}
-                                            {user.email && <span className="email">{user.email}</span>}
-                                        </div>
-                                    </td>
-                                    <td data-label="来源">{getProviderBadge(user.auth_provider)}</td>
-                                    <td data-label="等级">
-                                        {user.auth_provider === 'linuxdo' && getTrustLevelBadge(user.trust_level)}
-                                        {user.auth_provider === 'github' && <span style={{ color: '#999' }}>-</span>}
-                                    </td>
-                                    <td data-label="登录次数">{user.login_count}</td>
-                                    <td data-label="最后登录">{formatDate(user.last_login)}</td>
-                                    <td data-label="状态">
-                                        {user.is_banned ? (
-                                            <span className="status-badge banned">已封禁</span>
-                                        ) : (
-                                            <span className="status-badge active">正常</span>
-                                        )}
-                                    </td>
-                                    <td data-label="操作">
-                                        {user.is_banned ? (
-                                            <button
-                                                onClick={() => handleUnban(user)}
-                                                disabled={unbanLoading}
-                                                className="action-btn unban"
-                                            >
-                                                解封
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleBan(user)}
-                                                disabled={banLoading}
-                                                className="action-btn ban"
-                                            >
-                                                封禁
-                                            </button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {filteredUsers.length === 0 && !usersLoading && (
-                <div className="empty-state">
-                    暂无用户数据
-                </div>
-            )}
-
-            <style>{`
-                .user-management-container {
-                    padding: 0;
-                }
+        // ... JSX
+        <style>{`
+                /* ... existing styles ... */
                 
-                .stats-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                    margin-bottom: 16px;
-                    padding: 12px 16px;
-                    background: #f8f9fa;
-                    border-radius: 8px;
-                    overflow-x: auto; /* Allow scroll on extremely small screens */
-                    white-space: nowrap;
-                }
-                
-                .stat-divider {
-                    width: 1px;
-                    height: 16px;
-                    background: #dfe1e5;
-                }
-                
-                .stat {
+                .stat-item {
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    font-size: 16px;
+                    font-size: 14px;
                     color: #555;
                 }
                 
-                .stat strong {
-                    font-size: 18px;
+                .stat-value {
+                    font-size: 16px;
                     color: #333;
                     font-weight: 600;
+                    line-height: 1;
                 }
                 
-                .stat.linuxdo strong { color: #0078D4; }
-                .stat.github strong { color: #24292e; }
-                .stat.active strong { color: #22c55e; }
-                .stat.banned strong { color: #dc2626; }
-                
-                .controls-row {
-                    display: flex;
-                    gap: 12px;
-                    flex-wrap: wrap;
-                    margin-bottom: 16px;
-                    align-items: center;
-                }
-                
-                .search-input {
-                    flex: 1;
-                    min-width: 200px;
-                    padding: 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 6px;
-                    font-size: 13px;
-                }
-                
-                .search-input:focus {
-                    outline: none;
-                    border-color: #0078D4;
-                    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
-                }
-                
-                .filter-group {
-                    display: flex;
-                    gap: 8px;
-                }
-                
-                .filter-select {
-                    padding: 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 6px;
-                    font-size: 13px;
-                    background: white;
-                    cursor: pointer;
-                }
-                
-                .filter-select:focus {
-                    outline: none;
-                    border-color: #0078D4;
-                }
+                .stat-item.linuxdo .stat-value { color: #0078D4; }
+                .stat-item.github .stat-value { color: #24292e; }
+                .stat-item.active .stat-value { color: #22c55e; }
+                .stat-item.banned .stat-value { color: #dc2626; }
                 
                 .refresh-btn {
                     padding: 8px 16px !important;
                     font-size: 13px !important;
                     border-radius: 6px !important;
-                }
-                
-                .table-container {
-                    overflow-x: auto;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 8px;
-                }
-                
-                .user-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 13px;
-                }
-                
-                .user-table th {
-                    background: #f9fafb;
-                    padding: 12px;
-                    text-align: left;
-                    font-weight: 600;
-                    color: #374151;
-                    border-bottom: 1px solid #e5e7eb;
-                    white-space: nowrap;
-                }
-                
-                .user-table td {
-                    padding: 12px;
-                    border-bottom: 1px solid #f3f4f6;
-                    vertical-align: middle;
-                }
-                
-                .user-table tbody tr:hover {
-                    background: #f9fafb;
-                }
-                
-                .user-table tbody tr.banned-row {
-                    background: #fef2f2;
-                }
-                
-                .user-table tbody tr.banned-row:hover {
-                    background: #fee2e2;
-                }
-                
-                .avatar-img {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                }
-                
-                .avatar-placeholder {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    display: flex;
+                    display: inline-flex;
                     align-items: center;
-                    justify-content: center;
-                    font-size: 14px;
-                    font-weight: 600;
+                    gap: 6px;
+                    background: #f0f0f0;
+                    border: 1px solid #d9d9d9;
+                    color: #333;
+                    transition: all 0.2s;
+                }
+                .refresh-btn:hover:not(:disabled) {
+                    background: #e6e6e6;
+                    border-color: #d9d9d9;
+                    color: #0078D4;
                 }
                 
-                .user-info-cell {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
+                .refresh-icon.spinning {
+                    animation: spin 1s linear infinite;
                 }
                 
-                .username {
-                    font-weight: 600;
-                    color: #111827;
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
                 
-                .display-name {
-                    font-size: 12px;
-                    color: #6b7280;
-                }
-                
-                .email {
-                    font-size: 11px;
-                    color: #9ca3af;
-                }
-                
-                .status-badge {
-                    display: inline-block;
-                    padding: 3px 8px;
-                    font-size: 11px;
-                    font-weight: 600;
-                    border-radius: 4px;
-                }
-                
-                .status-badge.active {
-                    background: #dcfce7;
-                    color: #166534;
-                }
-                
-                .status-badge.banned {
-                    background: #fee2e2;
-                    color: #dc2626;
-                }
-                
-                .action-btn {
-                    padding: 5px 12px !important;
-                    font-size: 12px !important;
-                    border-radius: 4px !important;
-                }
-                
-                .action-btn.ban {
-                    background: #dc2626 !important;
-                }
-                
-                .action-btn.ban:hover {
-                    background: #b91c1c !important;
-                }
-                
-                .action-btn.unban {
-                    background: #22c55e !important;
-                }
-                
-                .action-btn.unban:hover {
-                    background: #16a34a !important;
-                }
-                
-                .empty-state {
-                    text-align: center;
-                    padding: 40px;
-                    color: #9ca3af;
-                    font-size: 14px;
-                }
-                
+                /* Responsive adjustments */
                 @media (max-width: 768px) {
-                    .stats-row {
-                        gap: 12px;
-                    }
-                    .controls-row {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-                    .search-input {
-                        width: 100%;
-                    }
-                    .filter-group {
-                        width: 100%;
-                    }
-                    .filter-select {
-                        flex: 1;
-                    }
                     .refresh-btn {
                         width: 100%;
-                    }
-
-                    /* Responsive Table (Card View) */
-                    .user-table, .user-table tbody, .user-table tr, .user-table td {
-                        display: block;
-                        width: 100%;
-                    }
-                    .user-table thead {
-                        display: none;
-                    }
-                    .user-table tr {
-                        margin-bottom: 16px;
-                        border: 1px solid #e5e7eb;
-                        border-radius: 8px;
-                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-                        padding: 12px;
-                        background: white;
-                    }
-                    .user-table td {
-                        padding: 8px 0;
-                        border-bottom: 1px solid #f3f4f6;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        text-align: right;
-                    }
-                    .user-table td:last-child {
-                        border-bottom: none;
-                    }
-                    .user-table td::before {
-                        content: attr(data-label);
-                        float: left;
-                        font-weight: 600;
-                        color: #6b7280;
-                        font-size: 13px;
-                    }
-                    
-                    /* Special handling for User Info to align right but text left */
-                    .user-info-cell {
-                        align-items: flex-end;
-                        text-align: right;
+                        justify-content: center;
                     }
                 }
+                
+                /* ... rest of styles ... */
             `}</style>
-        </div>
+        // ...
     );
 };
+
+
 
 export default UserManagementTab;

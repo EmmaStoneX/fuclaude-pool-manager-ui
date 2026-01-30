@@ -184,7 +184,12 @@ const AccountManagementTab: React.FC = () => {
                     <button onClick={handleSelectAll}>{selectedEmails.size === filteredList.length && filteredList.length > 0 ? '全不选' : '全选'}</button>
                     <button onClick={handleSelectInvert}>反选</button>
                     <button onClick={handleCheckHealth} disabled={isLoading} className="info-btn" title="检测所有账号有效性">
-                        {checkLoading ? '检测中...' : '🩺 检测存活'}
+                        {checkLoading ? '检测中...' : (
+                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                                检测存活
+                            </span>
+                        )}
                     </button>
                 </div>
                 <button onClick={handleBatchDelete} disabled={deleteLoading || selectedEmails.size === 0} className="danger">
@@ -229,7 +234,17 @@ const AccountManagementTab: React.FC = () => {
                         <div className="col-status" data-label="Status">
                             {item.status ? (
                                 <span className={`status-badge ${item.status.isValid ? 'valid' : 'invalid'}`} title={item.status.message || (item.status.isValid ? '有效' : '无效')}>
-                                    {item.status.isValid ? '✅ 有效' : '❌ 失效'}
+                                    {item.status.isValid ? (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                                            有效
+                                        </span>
+                                    ) : (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                                            失效
+                                        </span>
+                                    )}
                                 </span>
                             ) : (
                                 <span className="status-badge unknown" title="尚未检测">-</span>
