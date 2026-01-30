@@ -76,6 +76,10 @@ const AdminView: React.FC<AdminViewProps> = ({ onToggleConfig, showConfigPanel }
           background: #f5f5f5;
           border-radius: 4px;
           font-family: monospace;
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .config-toggle-button {
           background: transparent !important;
@@ -89,6 +93,60 @@ const AdminView: React.FC<AdminViewProps> = ({ onToggleConfig, showConfigPanel }
         .config-toggle-button:hover {
           opacity: 1;
           box-shadow: none !important;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .admin-header-bar {
+                flex-direction: column;
+                align-items: stretch;
+                background: #fff;
+                padding: 12px;
+                border-radius: 8px;
+                border: 1px solid #eee;
+                gap: 16px;
+            }
+            .info-message {
+                 display: flex;
+                 justify-content: space-between;
+                 align-items: center;
+                 width: 100%;
+                 font-size: 14px;
+            }
+            .info-message .logout-button {
+                padding: 4px 12px;
+                font-size: 13px;
+                height: 32px;
+            }
+            .config-section {
+                width: 100%;
+                justify-content: space-between;
+                background: #f9f9f9;
+                padding: 8px;
+                border-radius: 6px;
+            }
+            .worker-url-display {
+                flex: 1;
+                max-width: 100%;
+                background: transparent;
+                padding: 0;
+            }
+            
+            /* Admin Tabs styling override for mobile */
+            /* Assuming .admin-tabs is defined globally or in another file, we enhance it here */
+            :global(.admin-tabs) {
+                display: flex;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                gap: 8px;
+                border-bottom: 2px solid #f0f0f0;
+                padding: 0 4px 8px 4px;
+            }
+            :global(.admin-tabs button) {
+                flex: 0 0 auto;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
         }
       `}</style>
     </main>

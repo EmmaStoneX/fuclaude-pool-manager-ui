@@ -391,18 +391,33 @@ const AccountManagementTab: React.FC = () => {
                         flex-direction: column;
                         align-items: stretch;
                         gap: 12px;
+                        padding: 12px; /* Reduce padding slightly */
                     }
                     .search-input {
                         width: 100%;
                     }
                     .btn-group {
-                        display: grid;
-                        grid-template-columns: 1fr 1fr 2fr; /* Select, Invert, Check */
+                        display: flex;
+                        flex-wrap: wrap; /* Allow wrapping */
                         gap: 8px;
                     }
+                    .btn-group button {
+                        flex: 1; /* Grow to fill space */
+                        min-width: 80px;
+                        white-space: nowrap;
+                    }
+                    /* Health check button takes full width on very small screens if needed, 
+                       or sits alongside others if space permits */
+                    .btn-group .info-btn {
+                       flex: 2; /* Give it more weight */
+                       min-width: 120px;
+                    }
+                    
                     /* Delete button full width */
                     .account-management-controls > button.danger {
                         width: 100%;
+                        margin-top: 4px;
+                        padding: 10px;
                     }
                 }
 

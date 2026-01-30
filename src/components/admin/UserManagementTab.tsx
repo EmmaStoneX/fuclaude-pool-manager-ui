@@ -223,7 +223,7 @@ const UserManagementTab: React.FC = () => {
                         <tbody>
                             {filteredUsers.map((user) => (
                                 <tr key={`${user.auth_provider}-${user.id}`} className={user.is_banned ? 'banned-row' : ''}>
-                                    <td>
+                                    <td data-label="头像">
                                         {user.avatar_url ? (
                                             <img
                                                 src={user.avatar_url}
@@ -239,28 +239,28 @@ const UserManagementTab: React.FC = () => {
                                             </div>
                                         )}
                                     </td>
-                                    <td>
+                                    <td data-label="用户信息">
                                         <div className="user-info-cell">
                                             <span className="username">{user.username}</span>
                                             {user.name && <span className="display-name">{user.name}</span>}
                                             {user.email && <span className="email">{user.email}</span>}
                                         </div>
                                     </td>
-                                    <td>{getProviderBadge(user.auth_provider)}</td>
-                                    <td>
+                                    <td data-label="来源">{getProviderBadge(user.auth_provider)}</td>
+                                    <td data-label="等级">
                                         {user.auth_provider === 'linuxdo' && getTrustLevelBadge(user.trust_level)}
                                         {user.auth_provider === 'github' && <span style={{ color: '#999' }}>-</span>}
                                     </td>
-                                    <td>{user.login_count}</td>
-                                    <td>{formatDate(user.last_login)}</td>
-                                    <td>
+                                    <td data-label="登录次数">{user.login_count}</td>
+                                    <td data-label="最后登录">{formatDate(user.last_login)}</td>
+                                    <td data-label="状态">
                                         {user.is_banned ? (
                                             <span className="status-badge banned">已封禁</span>
                                         ) : (
                                             <span className="status-badge active">正常</span>
                                         )}
                                     </td>
-                                    <td>
+                                    <td data-label="操作">
                                         {user.is_banned ? (
                                             <button
                                                 onClick={() => handleUnban(user)}
@@ -505,6 +505,7 @@ const UserManagementTab: React.FC = () => {
                     }
                     .controls-row {
                         flex-direction: column;
+                        align-items: stretch;
                     }
                     .search-input {
                         width: 100%;
@@ -514,6 +515,50 @@ const UserManagementTab: React.FC = () => {
                     }
                     .filter-select {
                         flex: 1;
+                    }
+                    .refresh-btn {
+                        width: 100%;
+                    }
+
+                    /* Responsive Table (Card View) */
+                    .user-table, .user-table tbody, .user-table tr, .user-table td {
+                        display: block;
+                        width: 100%;
+                    }
+                    .user-table thead {
+                        display: none;
+                    }
+                    .user-table tr {
+                        margin-bottom: 16px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                        padding: 12px;
+                        background: white;
+                    }
+                    .user-table td {
+                        padding: 8px 0;
+                        border-bottom: 1px solid #f3f4f6;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        text-align: right;
+                    }
+                    .user-table td:last-child {
+                        border-bottom: none;
+                    }
+                    .user-table td::before {
+                        content: attr(data-label);
+                        float: left;
+                        font-weight: 600;
+                        color: #6b7280;
+                        font-size: 13px;
+                    }
+                    
+                    /* Special handling for User Info to align right but text left */
+                    .user-info-cell {
+                        align-items: flex-end;
+                        text-align: right;
                     }
                 }
             `}</style>
