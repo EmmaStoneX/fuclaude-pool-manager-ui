@@ -84,8 +84,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
                     <button
                         onClick={handleSubmit}
                         disabled={isLoading || !email || !sk}
-                        className="primary-btn"
-                        style={{ background: 'linear-gradient(135deg, #e94560, #ff6b81)' }} // distinct color for contribute
+                        className="submit-btn"
                     >
                         {isLoading ? '提交中...' : '确认投喂'}
                     </button>
@@ -104,6 +103,34 @@ const ContributeModal: React.FC<ContributeModalProps> = ({ isOpen, onClose }) =>
         }
         .contribute-desc small {
           color: #999;
+        }
+        .submit-btn {
+          background: linear-gradient(135deg, #e94560, #ff6b81);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+        .submit-btn:hover:not(:disabled) {
+          filter: brightness(1.1);
+          transform: translateY(-1px);
+        }
+        .submit-btn:disabled {
+          background: #ffb8c2 !important; /* 浅红色背景 */
+          color: rgba(255, 255, 255, 0.9) !important;
+          cursor: not-allowed;
+          opacity: 1 !important; /* 不透明 */
+        }
+        
+        /* 针对暗黑模式或深色背景的适配 */
+        @media (prefers-color-scheme: dark) {
+            .submit-btn:disabled {
+                 background: #8e2b3b !important; /* 深红色背景 */
+                 color: rgba(255, 255, 255, 0.6) !important;
+            }
         }
       `}</style>
         </Modal>
