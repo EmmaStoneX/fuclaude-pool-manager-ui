@@ -70,34 +70,122 @@ const AppContent: React.FC = () => {
         </div>
         <div className="controls-section">
           {user && (
-            <div className="user-info" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginRight: '12px'
-            }}>
-              {user.avatar_url && (
-                <img
-                  src={user.avatar_url}
-                  alt={user.username}
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    border: '2px solid #0078D4'
-                  }}
-                />
-              )}
-              <span style={{ fontSize: '14px', color: '#424242' }}>
-                {user.username}
-              </span>
+            <div className="header-user-info">
+              <div className="header-avatar-wrapper">
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.username}
+                    className="header-avatar"
+                  />
+                ) : (
+                  <div className="header-avatar-placeholder">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                {user.auth_provider && (
+                  <span className={`header-provider-badge ${user.auth_provider}`}>
+                    {user.auth_provider === 'github' ? (
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </div>
+              <span className="header-username">{user.username}</span>
               <button
                 onClick={logout}
-                className="secondary"
-                style={{ padding: '4px 8px', fontSize: '12px' }}
+                className="header-logout-btn"
               >
                 登出
               </button>
+              <style>{`
+                .header-user-info {
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  padding: 6px 12px;
+                  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.9) 100%);
+                  border-radius: 24px;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                  margin-right: 8px;
+                }
+                .header-avatar-wrapper {
+                  position: relative;
+                  flex-shrink: 0;
+                }
+                .header-avatar {
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  object-fit: cover;
+                  border: 2px solid transparent;
+                  background: linear-gradient(white, white) padding-box,
+                              linear-gradient(135deg, #0078D4, #e94560) border-box;
+                  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
+                }
+                .header-avatar-placeholder {
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, #0078D4, #106EBE);
+                  color: white;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 14px;
+                  font-weight: 600;
+                  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.25);
+                }
+                .header-provider-badge {
+                  position: absolute;
+                  bottom: -2px;
+                  right: -2px;
+                  width: 16px;
+                  height: 16px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  border: 2px solid white;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .header-provider-badge.github {
+                  background: #24292e;
+                  color: white;
+                }
+                .header-provider-badge.linuxdo {
+                  background: #0078D4;
+                  color: white;
+                }
+                .header-username {
+                  font-size: 13px;
+                  font-weight: 500;
+                  color: #333;
+                  max-width: 120px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                }
+                .header-logout-btn {
+                  padding: 4px 10px !important;
+                  font-size: 11px !important;
+                  background: rgba(0,0,0,0.06) !important;
+                  color: #666 !important;
+                  border-radius: 12px !important;
+                  transition: all 0.2s ease !important;
+                }
+                .header-logout-btn:hover {
+                  background: rgba(211, 47, 47, 0.1) !important;
+                  color: #d32f2f !important;
+                  box-shadow: none !important;
+                }
+              `}</style>
             </div>
           )}
           <span className="current-worker-url-display" aria-label={`Current Worker URL: ${workerUrl}`}>

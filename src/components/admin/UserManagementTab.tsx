@@ -64,7 +64,7 @@ const UserManagementTab: React.FC = () => {
     const handleBan = async (user: LinuxDoUserInfo) => {
         if (!adminPassword || !toastCtx) return;
         const providerName = user.auth_provider === 'github' ? 'GitHub' : 'LinuxDO';
-        if (!window.confirm(`确定要封禁 ${providerName} 用户 "${user.username}" 吗？封禁后该用户将无法登录。`)) return;
+        if (!window.confirm(`确定要封禁 ${providerName} 用户 "${user.username}" 吗？`)) return;
 
         try {
             await banApi(API_PATHS.ADMIN_BAN, 'POST', {
@@ -95,7 +95,6 @@ const UserManagementTab: React.FC = () => {
     const formatDate = (dateStr: string) => {
         try {
             return new Date(dateStr).toLocaleString('zh-CN', {
-                year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
@@ -106,30 +105,46 @@ const UserManagementTab: React.FC = () => {
         }
     };
 
-    const getTrustLevelLabel = (level?: number) => {
+    const getTrustLevelBadge = (level?: number) => {
         if (level === undefined) return null;
-        const labels: Record<number, string> = {
-            0: 'TL0 新用户',
-            1: 'TL1 基本',
-            2: 'TL2 成员',
-            3: 'TL3 活跃',
-            4: 'TL4 领导者'
+        const colors: Record<number, string> = {
+            0: '#9ca3af',
+            1: '#6b7280',
+            2: '#3b82f6',
+            3: '#22c55e',
+            4: '#a855f7'
         };
-        return labels[level] || `TL${level}`;
+        return (
+            <span style={{
+                display: 'inline-block',
+                padding: '2px 6px',
+                fontSize: '10px',
+                fontWeight: 600,
+                background: colors[level] || '#9ca3af',
+                color: 'white',
+                borderRadius: '4px'
+            }}>
+                TL{level}
+            </span>
+        );
     };
 
-    const getProviderIcon = (provider: AuthProvider) => {
-        if (provider === 'github') {
-            return (
-                <svg className="provider-icon github" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-            );
-        }
+    const getProviderBadge = (provider: AuthProvider) => {
+        const isGitHub = provider === 'github';
         return (
-            <svg className="provider-icon linuxdo" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-            </svg>
+            <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: 500,
+                background: isGitHub ? '#24292e' : '#0078D4',
+                color: 'white',
+                borderRadius: '4px'
+            }}>
+                {isGitHub ? '🐙' : '🌐'} {isGitHub ? 'GitHub' : 'LinuxDO'}
+            </span>
         );
     };
 
@@ -142,33 +157,18 @@ const UserManagementTab: React.FC = () => {
     const githubCount = usersResponse?.github_count ?? 0;
 
     return (
-        <div id="admin-tab-panel-users" role="tabpanel" aria-labelledby="admin-tab-users" className="admin-action-section">
+        <div className="user-management-container">
             {/* Stats Bar */}
-            <div className="user-stats-bar">
-                <div className="stat-item">
-                    <span className="stat-label">总用户数</span>
-                    <span className="stat-value">{totalCount}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-label">LinuxDO</span>
-                    <span className="stat-value stat-linuxdo">{linuxdoCount}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-label">GitHub</span>
-                    <span className="stat-value stat-github">{githubCount}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-label">活跃</span>
-                    <span className="stat-value stat-active">{activeCount}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-label">已封禁</span>
-                    <span className="stat-value stat-banned">{bannedCount}</span>
-                </div>
+            <div className="stats-row">
+                <span className="stat">总用户 <strong>{totalCount}</strong></span>
+                <span className="stat linuxdo">LinuxDO <strong>{linuxdoCount}</strong></span>
+                <span className="stat github">GitHub <strong>{githubCount}</strong></span>
+                <span className="stat active">活跃 <strong>{activeCount}</strong></span>
+                <span className="stat banned">封禁 <strong>{bannedCount}</strong></span>
             </div>
 
             {/* Controls */}
-            <div className="user-management-controls">
+            <div className="controls-row">
                 <input
                     type="text"
                     placeholder="搜索用户名、昵称或邮箱..."
@@ -177,48 +177,26 @@ const UserManagementTab: React.FC = () => {
                     className="search-input"
                 />
                 <div className="filter-group">
-                    <div className="filter-buttons provider-filter">
-                        <button
-                            className={providerFilter === 'all' ? 'active' : ''}
-                            onClick={() => setProviderFilter('all')}
-                        >
-                            全部来源
-                        </button>
-                        <button
-                            className={providerFilter === 'linuxdo' ? 'active linuxdo' : ''}
-                            onClick={() => setProviderFilter('linuxdo')}
-                        >
-                            🌐 LinuxDO
-                        </button>
-                        <button
-                            className={providerFilter === 'github' ? 'active github' : ''}
-                            onClick={() => setProviderFilter('github')}
-                        >
-                            🐙 GitHub
-                        </button>
-                    </div>
-                    <div className="filter-buttons status-filter">
-                        <button
-                            className={filter === 'all' ? 'active' : ''}
-                            onClick={() => setFilter('all')}
-                        >
-                            全部状态
-                        </button>
-                        <button
-                            className={filter === 'active' ? 'active' : ''}
-                            onClick={() => setFilter('active')}
-                        >
-                            活跃
-                        </button>
-                        <button
-                            className={filter === 'banned' ? 'active' : ''}
-                            onClick={() => setFilter('banned')}
-                        >
-                            已封禁
-                        </button>
-                    </div>
+                    <select
+                        value={providerFilter}
+                        onChange={(e) => setProviderFilter(e.target.value as ProviderFilterType)}
+                        className="filter-select"
+                    >
+                        <option value="all">全部来源</option>
+                        <option value="linuxdo">LinuxDO</option>
+                        <option value="github">GitHub</option>
+                    </select>
+                    <select
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value as FilterType)}
+                        className="filter-select"
+                    >
+                        <option value="all">全部状态</option>
+                        <option value="active">活跃</option>
+                        <option value="banned">已封禁</option>
+                    </select>
                 </div>
-                <button onClick={loadUsers} disabled={isLoading} className="refresh-button">
+                <button onClick={loadUsers} disabled={isLoading} className="refresh-btn">
                     {isLoading ? '刷新中...' : '🔄 刷新'}
                 </button>
             </div>
@@ -226,157 +204,316 @@ const UserManagementTab: React.FC = () => {
             {usersLoading && <LoadingIndicator message="加载用户列表..." />}
             {usersError && <p className="error-message">{usersError}</p>}
 
-            {/* User Cards */}
-            <div className="user-cards-grid">
-                {filteredUsers.map((user) => (
-                    <div key={`${user.auth_provider}-${user.id}`} className={`user-card ${user.is_banned ? 'banned' : ''} ${user.auth_provider}`}>
-                        <div className="user-card-header">
-                            <div className="user-avatar">
-                                {user.avatar_url ? (
-                                    <img src={user.avatar_url} alt={user.username} />
-                                ) : (
-                                    <div className="avatar-placeholder">
-                                        {user.username.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                                <span className="provider-badge" title={user.auth_provider === 'github' ? 'GitHub' : 'LinuxDO'}>
-                                    {getProviderIcon(user.auth_provider)}
-                                </span>
-                            </div>
-                            <div className="user-basic-info">
-                                <div className="user-name-row">
-                                    <span className="username">{user.username}</span>
-                                    {user.is_banned && <span className="banned-badge">已封禁</span>}
-                                </div>
-                                {user.name && <span className="display-name">{user.name}</span>}
-                                {user.email && <span className="user-email">{user.email}</span>}
-                            </div>
-                        </div>
-
-                        <div className="user-card-body">
-                            {user.auth_provider === 'linuxdo' && user.trust_level !== undefined && (
-                                <div className="user-detail">
-                                    <span className="detail-label">信任等级</span>
-                                    <span className={`detail-value trust-level-${user.trust_level}`}>
-                                        {getTrustLevelLabel(user.trust_level)}
-                                    </span>
-                                </div>
-                            )}
-                            <div className="user-detail">
-                                <span className="detail-label">登录次数</span>
-                                <span className="detail-value">{user.login_count}</span>
-                            </div>
-                            <div className="user-detail">
-                                <span className="detail-label">首次登录</span>
-                                <span className="detail-value">{formatDate(user.first_login)}</span>
-                            </div>
-                            <div className="user-detail">
-                                <span className="detail-label">最后登录</span>
-                                <span className="detail-value">{formatDate(user.last_login)}</span>
-                            </div>
-                        </div>
-
-                        <div className="user-card-footer">
-                            {user.is_banned ? (
-                                <button
-                                    onClick={() => handleUnban(user)}
-                                    disabled={unbanLoading}
-                                    className="unban-button"
-                                >
-                                    解除封禁
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => handleBan(user)}
-                                    disabled={banLoading}
-                                    className="ban-button danger"
-                                >
-                                    封禁用户
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
+            {/* User Table */}
+            {!usersLoading && filteredUsers.length > 0 && (
+                <div className="table-container">
+                    <table className="user-table">
+                        <thead>
+                            <tr>
+                                <th style={{ width: '40px' }}>头像</th>
+                                <th>用户名</th>
+                                <th>来源</th>
+                                <th>等级</th>
+                                <th>登录次数</th>
+                                <th>最后登录</th>
+                                <th>状态</th>
+                                <th style={{ width: '100px' }}>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredUsers.map((user) => (
+                                <tr key={`${user.auth_provider}-${user.id}`} className={user.is_banned ? 'banned-row' : ''}>
+                                    <td>
+                                        {user.avatar_url ? (
+                                            <img
+                                                src={user.avatar_url}
+                                                alt=""
+                                                className="avatar-img"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder">
+                                                {user.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td>
+                                        <div className="user-info-cell">
+                                            <span className="username">{user.username}</span>
+                                            {user.name && <span className="display-name">{user.name}</span>}
+                                            {user.email && <span className="email">{user.email}</span>}
+                                        </div>
+                                    </td>
+                                    <td>{getProviderBadge(user.auth_provider)}</td>
+                                    <td>
+                                        {user.auth_provider === 'linuxdo' && getTrustLevelBadge(user.trust_level)}
+                                        {user.auth_provider === 'github' && <span style={{ color: '#999' }}>-</span>}
+                                    </td>
+                                    <td>{user.login_count}</td>
+                                    <td>{formatDate(user.last_login)}</td>
+                                    <td>
+                                        {user.is_banned ? (
+                                            <span className="status-badge banned">已封禁</span>
+                                        ) : (
+                                            <span className="status-badge active">正常</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {user.is_banned ? (
+                                            <button
+                                                onClick={() => handleUnban(user)}
+                                                disabled={unbanLoading}
+                                                className="action-btn unban"
+                                            >
+                                                解封
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleBan(user)}
+                                                disabled={banLoading}
+                                                className="action-btn ban"
+                                            >
+                                                封禁
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {filteredUsers.length === 0 && !usersLoading && (
                 <div className="empty-state">
-                    <p>
-                        {searchTerm || filter !== 'all' || providerFilter !== 'all'
-                            ? '没有找到符合条件的用户'
-                            : '暂无用户数据'}
-                    </p>
+                    暂无用户数据
                 </div>
             )}
 
             <style>{`
-                .user-stats-bar {
-                    display: flex;
-                    gap: 16px;
-                    flex-wrap: wrap;
-                    margin-bottom: 20px;
+                .user-management-container {
+                    padding: 0;
                 }
-                .stat-linuxdo { color: #0078D4; }
-                .stat-github { color: #24292e; }
+                
+                .stats-row {
+                    display: flex;
+                    gap: 20px;
+                    flex-wrap: wrap;
+                    margin-bottom: 16px;
+                    padding: 12px 16px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                }
+                
+                .stat {
+                    font-size: 13px;
+                    color: #666;
+                }
+                
+                .stat strong {
+                    margin-left: 4px;
+                    font-size: 15px;
+                    color: #333;
+                }
+                
+                .stat.linuxdo strong { color: #0078D4; }
+                .stat.github strong { color: #24292e; }
+                .stat.active strong { color: #22c55e; }
+                .stat.banned strong { color: #dc2626; }
+                
+                .controls-row {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                    margin-bottom: 16px;
+                    align-items: center;
+                }
+                
+                .search-input {
+                    flex: 1;
+                    min-width: 200px;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 13px;
+                }
+                
+                .search-input:focus {
+                    outline: none;
+                    border-color: #0078D4;
+                    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+                }
                 
                 .filter-group {
                     display: flex;
-                    flex-direction: column;
                     gap: 8px;
                 }
                 
-                .provider-filter button.linuxdo.active {
-                    background: linear-gradient(135deg, #0078D4, #106EBE);
-                    color: white;
-                }
-                
-                .provider-filter button.github.active {
-                    background: linear-gradient(135deg, #24292e, #1a1e22);
-                    color: white;
-                }
-                
-                .user-card.linuxdo {
-                    border-left: 3px solid #0078D4;
-                }
-                
-                .user-card.github {
-                    border-left: 3px solid #24292e;
-                }
-                
-                .user-avatar {
-                    position: relative;
-                }
-                
-                .provider-badge {
-                    position: absolute;
-                    bottom: -4px;
-                    right: -4px;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
+                .filter-select {
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 13px;
                     background: white;
+                    cursor: pointer;
+                }
+                
+                .filter-select:focus {
+                    outline: none;
+                    border-color: #0078D4;
+                }
+                
+                .refresh-btn {
+                    padding: 8px 16px !important;
+                    font-size: 13px !important;
+                    border-radius: 6px !important;
+                }
+                
+                .table-container {
+                    overflow-x: auto;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                }
+                
+                .user-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 13px;
+                }
+                
+                .user-table th {
+                    background: #f9fafb;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #374151;
+                    border-bottom: 1px solid #e5e7eb;
+                    white-space: nowrap;
+                }
+                
+                .user-table td {
+                    padding: 12px;
+                    border-bottom: 1px solid #f3f4f6;
+                    vertical-align: middle;
+                }
+                
+                .user-table tbody tr:hover {
+                    background: #f9fafb;
+                }
+                
+                .user-table tbody tr.banned-row {
+                    background: #fef2f2;
+                }
+                
+                .user-table tbody tr.banned-row:hover {
+                    background: #fee2e2;
+                }
+                
+                .avatar-img {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+                
+                .avatar-placeholder {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                    font-size: 14px;
+                    font-weight: 600;
                 }
                 
-                .provider-icon.github { color: #24292e; }
-                .provider-icon.linuxdo { color: #0078D4; }
+                .user-info-cell {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
                 
-                .user-email {
+                .username {
+                    font-weight: 600;
+                    color: #111827;
+                }
+                
+                .display-name {
+                    font-size: 12px;
+                    color: #6b7280;
+                }
+                
+                .email {
                     font-size: 11px;
-                    color: #888;
-                    display: block;
-                    margin-top: 2px;
+                    color: #9ca3af;
+                }
+                
+                .status-badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    border-radius: 4px;
+                }
+                
+                .status-badge.active {
+                    background: #dcfce7;
+                    color: #166534;
+                }
+                
+                .status-badge.banned {
+                    background: #fee2e2;
+                    color: #dc2626;
+                }
+                
+                .action-btn {
+                    padding: 5px 12px !important;
+                    font-size: 12px !important;
+                    border-radius: 4px !important;
+                }
+                
+                .action-btn.ban {
+                    background: #dc2626 !important;
+                }
+                
+                .action-btn.ban:hover {
+                    background: #b91c1c !important;
+                }
+                
+                .action-btn.unban {
+                    background: #22c55e !important;
+                }
+                
+                .action-btn.unban:hover {
+                    background: #16a34a !important;
+                }
+                
+                .empty-state {
+                    text-align: center;
+                    padding: 40px;
+                    color: #9ca3af;
+                    font-size: 14px;
                 }
                 
                 @media (max-width: 768px) {
+                    .stats-row {
+                        gap: 12px;
+                    }
+                    .controls-row {
+                        flex-direction: column;
+                    }
+                    .search-input {
+                        width: 100%;
+                    }
                     .filter-group {
                         width: 100%;
                     }
-                    .filter-buttons {
-                        flex-wrap: wrap;
+                    .filter-select {
+                        flex: 1;
                     }
                 }
             `}</style>
@@ -385,4 +522,3 @@ const UserManagementTab: React.FC = () => {
 };
 
 export default UserManagementTab;
-
