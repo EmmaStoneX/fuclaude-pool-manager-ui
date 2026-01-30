@@ -1,8 +1,27 @@
 
+export interface AccountStatus {
+  isValid: boolean;
+  lastChecked: number;
+  message?: string;
+}
+
 export interface EmailSkMapEntry {
   index: number;
   email: string;
   sk_preview: string;
+  status?: AccountStatus;
+}
+
+export interface HealthCheckStats {
+  total: number;
+  valid: number;
+  invalid: number;
+}
+
+export interface HealthCheckResponse {
+  message: string;
+  stats: HealthCheckStats;
+  results: Record<string, AccountStatus>;
 }
 
 export interface AdminBatchAction {

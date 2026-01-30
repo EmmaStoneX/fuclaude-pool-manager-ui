@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useContext } from 'react';
 import useApi from '../../hooks/useApi';
-import { EmailSkMapEntry, AdminAddPayload, AdminUpdatePayload, AdminDeletePayload, AdminBatchPayload, AdminBatchApiResponse, AdminBatchAction, AdminApiResponse } from '../../types';
+import { EmailSkMapEntry, AdminAddPayload, AdminUpdatePayload, AdminDeletePayload, AdminBatchPayload, AdminBatchApiResponse, AdminBatchAction, AdminApiResponse, HealthCheckResponse, AdminRequestBase } from '../../types';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { ToastContext } from '../../contexts/ToastContext';
 import { API_PATHS } from '../../utils/apiConstants';
@@ -11,7 +11,8 @@ const AccountManagementTab: React.FC = () => {
     const { callApi: addApi, isLoading: addLoading } = useApi<AdminAddPayload, AdminApiResponse>();
     const { callApi: updateApi, isLoading: updateLoading } = useApi<AdminUpdatePayload, AdminApiResponse>();
     const { callApi: batchDeleteApi, isLoading: deleteLoading } = useApi<AdminBatchPayload, AdminBatchApiResponse>();
-    
+    const { callApi: checkHealthApi, isLoading: checkLoading } = useApi<AdminRequestBase, HealthCheckResponse>();
+
     const { adminPassword } = useAdminAuth();
     const toastCtx = useContext(ToastContext);
 
@@ -71,7 +72,7 @@ const AccountManagementTab: React.FC = () => {
             ...(isEmailChanged && { new_email: editedAccount.email }),
             ...(isSkChanged && { new_sk: editedAccount.sk }),
         };
-        
+
         if (!payload.new_email && !payload.new_sk) {
             toastCtx.showToast('没有更改，已取消操作。', 'info');
             setEditingRow({});
@@ -119,7 +120,7 @@ const AccountManagementTab: React.FC = () => {
             fetchAccounts();
         } catch (e) { /* error handled by useApi */ }
     };
-    
+
     const handleSelectionChange = (email: string, isSelected: boolean) => {
         setSelectedEmails((prev: Set<string>) => {
             const newSet = new Set(prev);
@@ -148,7 +149,26 @@ const AccountManagementTab: React.FC = () => {
         setSelectedEmails(currentSelection);
     };
 
-    const isLoading = listLoading || addLoading || updateLoading || deleteLoading;
+    const handleCheckHealth = async () => {
+        if (!adminPassword || !toastCtx) return;
+        toastCtx.showToast('正在检测账号健康状态，这可能需要几十秒，请耐心等待...', 'info');
+        try {
+            const result = await checkHealthApi(API_PATHS.ADMIN_CHECK_HEALTH, 'POST', { admin_password: adminPassword });
+            if (result) {
+                const { total, valid, invalid } = result.stats;
+                let msgType: 'success' | 'info' | 'error' = 'success';
+                let msg = `检测完成: ${valid}/${total} 个账号有效。`;
+                if (invalid > 0) {
+                    msgType = 'error';
+                    msg += ` ⚠️ 发现 ${invalid} 个无效账号！`;
+                }
+                toastCtx.showToast(msg, msgType);
+                fetchAccounts();
+            }
+        } catch (e) { }
+    };
+
+    const isLoading = listLoading || addLoading || updateLoading || deleteLoading || checkLoading;
 
     return (
         <div id="admin-tab-panel-manage" role="tabpanel" aria-labelledby="admin-tab-manage" className="admin-action-section">
@@ -160,8 +180,13 @@ const AccountManagementTab: React.FC = () => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                     className="search-input"
                 />
-                <button onClick={handleSelectAll}>{selectedEmails.size === filteredList.length && filteredList.length > 0 ? '全不选' : '全选'}</button>
-                <button onClick={handleSelectInvert}>反选</button>
+                <div className="btn-group">
+                    <button onClick={handleSelectAll}>{selectedEmails.size === filteredList.length && filteredList.length > 0 ? '全不选' : '全选'}</button>
+                    <button onClick={handleSelectInvert}>反选</button>
+                    <button onClick={handleCheckHealth} disabled={isLoading} className="info-btn" title="检测所有账号有效性">
+                        {checkLoading ? '检测中...' : '🩺 检测存活'}
+                    </button>
+                </div>
                 <button onClick={handleBatchDelete} disabled={deleteLoading || selectedEmails.size === 0} className="danger">
                     {deleteLoading ? '删除中...' : `删除选中 (${selectedEmails.size})`}
                 </button>
@@ -169,29 +194,40 @@ const AccountManagementTab: React.FC = () => {
 
             {listLoading && <LoadingIndicator />}
             {listError && <p className="error-message">{listError}</p>}
-            
+
             <div className="account-table">
-                <div className="account-table-header">
-                    <input type="checkbox" readOnly style={{visibility: 'hidden'}} />
+                <div className="account-table-header" style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
+                    <input type="checkbox" readOnly style={{ visibility: 'hidden' }} />
                     <span>Email</span>
                     <span>Session Key (SK)</span>
+                    <span>Status</span>
                     <span>Actions</span>
                 </div>
                 {filteredList.map((item: EmailSkMapEntry) => (
-                    <div key={item.email} className="account-table-row">
+                    <div key={item.email} className={`account-table-row ${item.status && !item.status.isValid ? 'row-invalid' : ''}`} style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
                         <input type="checkbox" checked={selectedEmails.has(item.email)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectionChange(item.email, e.target.checked)} />
                         <input
                             type="text"
                             value={editingRow[item.email]?.email ?? item.email}
                             disabled={!editingRow[item.email]}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({...editingRow, [item.email]: {...editingRow[item.email], email: e.target.value}})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], email: e.target.value } })}
                         />
                         <input
                             type="text"
                             value={editingRow[item.email]?.sk ?? item.sk_preview}
                             disabled={!editingRow[item.email]}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({...editingRow, [item.email]: {...editingRow[item.email], sk: e.target.value}})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingRow({ ...editingRow, [item.email]: { ...editingRow[item.email], sk: e.target.value } })}
+                            className={item.status && !item.status.isValid ? 'input-invalid' : ''}
                         />
+                        <div className="status-cell">
+                            {item.status ? (
+                                <span className={`status-badge ${item.status.isValid ? 'valid' : 'invalid'}`} title={item.status.message || (item.status.isValid ? '有效' : '无效')}>
+                                    {item.status.isValid ? '✅ 有效' : '❌ 失效'}
+                                </span>
+                            ) : (
+                                <span className="status-badge unknown" title="尚未检测">-</span>
+                            )}
+                        </div>
                         <div className="action-buttons">
                             {editingRow[item.email] ? (
                                 <>
@@ -204,25 +240,79 @@ const AccountManagementTab: React.FC = () => {
                         </div>
                     </div>
                 ))}
-                <div className="account-table-row add-new-row">
-                    <input type="checkbox" disabled style={{visibility: 'hidden'}} />
-                    <input 
-                        type="text" 
-                        placeholder="new-user@example.com" 
+                <div className="account-table-row add-new-row" style={{ gridTemplateColumns: '40px 2fr 3fr 1fr 120px' }}>
+                    <input type="checkbox" disabled style={{ visibility: 'hidden' }} />
+                    <input
+                        type="text"
+                        placeholder="new-user@example.com"
                         value={newAccount.email}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({...newAccount, email: e.target.value})}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, email: e.target.value })}
                     />
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         placeholder="sk-ant-session-..."
                         value={newAccount.sk}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({...newAccount, sk: e.target.value})}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAccount({ ...newAccount, sk: e.target.value })}
                     />
+                    <span></span>
                     <div className="action-buttons">
                         <button onClick={handleAdd} disabled={!newAccount.email || !newAccount.sk}>+</button>
                     </div>
                 </div>
             </div>
+
+            <style>{`
+                .account-table-header, .account-table-row {
+                    display: grid;
+                    gap: 10px;
+                    align-items: center;
+                }
+                .account-management-controls {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                .btn-group {
+                    display: flex;
+                    gap: 5px;
+                }
+                .info-btn {
+                    background-color: #17a2b8;
+                    color: white;
+                }
+                .info-btn:hover {
+                    background-color: #138496;
+                }
+                .status-badge {
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.85em;
+                    font-weight: bold;
+                    white-space: nowrap;
+                    display: inline-block;
+                }
+                .status-badge.valid {
+                    background-color: #d4edda;
+                    color: #155724;
+                }
+                .status-badge.invalid {
+                    background-color: #f8d7da;
+                    color: #721c24;
+                }
+                .status-badge.unknown {
+                    background-color: #e2e3e5;
+                    color: #383d41;
+                }
+                .row-invalid {
+                    background-color: rgba(248, 215, 218, 0.3);
+                }
+                .input-invalid {
+                    border-color: #dc3545 !important;
+                    background-color: #fff8f8;
+                }
+            `}</style>
         </div>
     );
 };

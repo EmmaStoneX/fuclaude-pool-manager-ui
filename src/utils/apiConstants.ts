@@ -11,6 +11,7 @@ export const API_PATHS = {
   ADMIN_UPDATE: '/api/admin/update',
   ADMIN_DELETE: '/api/admin/delete',
   ADMIN_BATCH: '/api/admin/batch',
+  ADMIN_CHECK_HEALTH: '/api/admin/check-health',
 
   // User management endpoints
   ADMIN_USERS: '/api/admin/users',
