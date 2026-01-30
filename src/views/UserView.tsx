@@ -9,15 +9,17 @@ import { generateRandomId } from '../utils/randomId';
 import { ToastContext } from '../contexts/ToastContext';
 import { API_PATHS } from '../utils/apiConstants';
 import { WorkerUrlContext } from '../contexts/WorkerUrlContext';
+import ContributeModal from '../components/ContributeModal';
 
 const UserView: React.FC = () => {
-  const { callApi: fetchEmails, data: emailsData, isLoading: emailsLoading, error: emailsError } = useApi<undefined, { emails: string[] }>();
+  const { callApi: fetchEmails, isLoading: emailsLoading, error: emailsError } = useApi<undefined, { emails: string[] }>();
   const { callApi: loginApi, isLoading: loginLoading } = useApi<LoginPayload, LoginResponse>();
   const toastCtx = useContext(ToastContext);
   const workerUrlCtx = useContext(WorkerUrlContext);
 
   const [emails, setEmails] = useState<string[]>([]);
   const [showUniqueNameModal, setShowUniqueNameModal] = useState<boolean>(false);
+  const [showContributeModal, setShowContributeModal] = useState<boolean>(false);
   const [selectedEmailForLogin, setSelectedEmailForLogin] = useState<string | null>(null);
   const [uniqueName, setUniqueName] = useState<string>('');
   const [expiresIn, setExpiresIn] = useState<string>(''); // Use string to handle empty input
@@ -114,6 +116,15 @@ const UserView: React.FC = () => {
         ))}
       </div>
 
+      <div className="contribute-section">
+        <button
+          className="contribute-trigger-btn"
+          onClick={() => setShowContributeModal(true)}
+        >
+          ❤️ 投喂账号 / Contribute Account
+        </button>
+      </div>
+
       <Modal
         isOpen={showUniqueNameModal}
         onClose={() => { setShowUniqueNameModal(false); setUniqueName(''); setExpiresIn(''); }}
@@ -158,6 +169,34 @@ const UserView: React.FC = () => {
           </button>
         </div>
       </Modal>
+
+      <ContributeModal
+        isOpen={showContributeModal}
+        onClose={() => setShowContributeModal(false)}
+      />
+
+      <style>{`
+        .contribute-section {
+          margin-top: 30px;
+          display: flex;
+          justify-content: center;
+        }
+        .contribute-trigger-btn {
+          background: transparent;
+          border: 1px dashed #e94560;
+          color: #e94560;
+          padding: 10px 20px;
+          border-radius: 20px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .contribute-trigger-btn:hover {
+          background: rgba(233, 69, 96, 0.05);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(233, 69, 96, 0.15);
+        }
+      `}</style>
     </main>
   );
 };

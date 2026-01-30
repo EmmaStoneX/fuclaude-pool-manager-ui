@@ -2,6 +2,7 @@ export const API_PATHS = {
   // User endpoints
   GET_EMAILS: '/api/emails',
   LOGIN: '/api/login',
+  CONTRIBUTE: '/api/contribute',
 
   // Admin endpoints
   ADMIN_LOGIN: '/api/admin/login',
