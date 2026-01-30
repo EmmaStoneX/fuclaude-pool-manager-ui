@@ -4,15 +4,11 @@ import AdminTabs, { AdminTabKey } from '../components/admin/AdminTabs';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import AdminBatchAddTab from '../components/admin/AdminBatchAddTab';
 import AccountManagementTab from '../components/admin/AccountManagementTab';
+import UserManagementTab from '../components/admin/UserManagementTab';
 
 const AdminView: React.FC = () => {
   const { isAdminAuthenticated, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTabKey>('manage');
-
-  const handleActionSuccess = () => {
-    // This function might need to be passed down to the management tab
-    // to trigger a refresh within it. For now, it's a placeholder.
-  };
 
   if (!isAdminAuthenticated) {
     return (
@@ -35,6 +31,7 @@ const AdminView: React.FC = () => {
       <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {activeTab === 'manage' && <AccountManagementTab />}
       {activeTab === 'batch_add' && <AdminBatchAddTab onActionSuccess={() => setActiveTab('manage')} />}
+      {activeTab === 'users' && <UserManagementTab />}
     </main>
   );
 };

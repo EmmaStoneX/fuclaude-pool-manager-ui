@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useCallback, useContext, Rea
 import { WorkerUrlContext } from './WorkerUrlContext';
 
 /**
- * LinuxDO 用户信息
+ * 用户信息（兼容 LinuxDO 和 GitHub）
  */
 export interface LinuxDoUser {
     id: number;
@@ -10,6 +10,7 @@ export interface LinuxDoUser {
     name?: string;
     avatar_url?: string;
     trust_level?: number;
+    auth_provider?: 'linuxdo' | 'github';
 }
 
 interface LinuxDoAuthContextType {
@@ -18,6 +19,7 @@ interface LinuxDoAuthContextType {
     isLoading: boolean;
     error: string | null;
     login: () => void;
+    loginWithGitHub: () => void;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
 }
@@ -94,6 +96,22 @@ export const LinuxDoAuthProvider: React.FC<{ children: ReactNode }> = ({ childre
         window.location.href = `${apiBase}/api/auth/login`;
     }, [getApiBase]);
 
+    // 跳转到 GitHub 登录
+    const loginWithGitHub = useCallback(() => {
+        const apiBase = getApiBase();
+        if (!apiBase) {
+            setError('Worker URL not configured');
+            return;
+        }
+
+        // 保存当前页面 URL，登录后返回
+        const returnUrl = window.location.href;
+        sessionStorage.setItem('github_return_url', returnUrl);
+
+        // 跳转到 GitHub 登录端点
+        window.location.href = `${apiBase}/api/auth/github/login`;
+    }, [getApiBase]);
+
     // 登出
     const logout = useCallback(async () => {
         const apiBase = getApiBase();
@@ -117,6 +135,7 @@ export const LinuxDoAuthProvider: React.FC<{ children: ReactNode }> = ({ childre
         isLoading,
         error,
         login,
+        loginWithGitHub,
         logout,
         refreshUser,
     };
@@ -129,7 +148,7 @@ export const LinuxDoAuthProvider: React.FC<{ children: ReactNode }> = ({ childre
 };
 
 /**
- * Hook to use LinuxDO auth context
+ * Hook to use LinuxDO auth context (also supports GitHub login)
  */
 export const useLinuxDoAuth = () => {
     const context = useContext(LinuxDoAuthContext);

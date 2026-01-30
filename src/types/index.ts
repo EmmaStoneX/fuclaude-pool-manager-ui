@@ -39,7 +39,7 @@ export interface AdminRequestBase {
   admin_password: string;
 }
 
-export interface AdminLoginPayload extends LoginPayload, AdminRequestBase {}
+export interface AdminLoginPayload extends LoginPayload, AdminRequestBase { }
 
 export type AdminAddPayload = {
   email: string;
@@ -67,3 +67,35 @@ export type AdminApiResponse = {
 export type AdminBatchApiResponse = AdminApiResponse & {
   results: AdminBatchResultItem[];
 };
+
+// Auth Provider Type
+export type AuthProvider = 'linuxdo' | 'github';
+
+// Unified User Management Types (supports LinuxDO and GitHub)
+export interface LinuxDoUserInfo {
+  id: number;
+  username: string;
+  name?: string;
+  avatar_url?: string;
+  trust_level?: number;
+  email?: string;
+  first_login: string;
+  last_login: string;
+  login_count: number;
+  is_banned: boolean;
+  auth_provider: AuthProvider;
+}
+
+export interface AdminUsersResponse {
+  users: LinuxDoUserInfo[];
+  banned_count: number;
+  linuxdo_count?: number;
+  github_count?: number;
+}
+
+export type AdminBanPayload = {
+  user_id: number;
+  auth_provider?: AuthProvider;
+} & AdminRequestBase;
+
+export type AdminUnbanPayload = AdminBanPayload;
