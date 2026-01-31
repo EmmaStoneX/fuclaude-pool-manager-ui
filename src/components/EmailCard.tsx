@@ -2,25 +2,34 @@ import React from 'react';
 
 /**
  * 邮箱脱敏函数
- * 将 example@domain.com 转换为 exa***@d***.com
+ * 将 example@domain.com 转换为 e*****e@d***n.com
+ * 只保留首尾各1个字符，中间全部用*替代
  */
 export function maskEmail(email: string): string {
   const atIndex = email.indexOf('@');
-  if (atIndex === -1) return email;
+  if (atIndex === -1) return '***';
 
   const local = email.slice(0, atIndex);
   const domain = email.slice(atIndex + 1);
 
-  // 本地部分脱敏：保留前3个字符
-  const maskedLocal = local.length > 3
-    ? local.slice(0, 3) + '***'
-    : local.slice(0, 1) + '***';
+  // 本地部分脱敏：只保留首尾各1个字符
+  let maskedLocal: string;
+  if (local.length <= 2) {
+    maskedLocal = local.charAt(0) + '***';
+  } else {
+    const starCount = Math.min(local.length - 2, 5); // 最多5个星号
+    maskedLocal = local.charAt(0) + '*'.repeat(starCount) + local.charAt(local.length - 1);
+  }
 
-  // 域名部分脱敏
+  // 域名部分脱敏：主域名只保留首尾各1个字符
   const domainParts = domain.split('.');
-  const maskedDomainMain = domainParts[0].length > 1
-    ? domainParts[0].slice(0, 1) + '***'
-    : domainParts[0] + '***';
+  let maskedDomainMain: string;
+  if (domainParts[0].length <= 2) {
+    maskedDomainMain = domainParts[0].charAt(0) + '***';
+  } else {
+    const starCount = Math.min(domainParts[0].length - 2, 3); // 最多3个星号
+    maskedDomainMain = domainParts[0].charAt(0) + '*'.repeat(starCount) + domainParts[0].charAt(domainParts[0].length - 1);
+  }
   const maskedDomain = [maskedDomainMain, ...domainParts.slice(1)].join('.');
 
   return `${maskedLocal}@${maskedDomain}`;

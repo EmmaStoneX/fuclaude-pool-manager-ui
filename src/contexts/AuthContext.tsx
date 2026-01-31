@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useCallback, useContext, ReactNode, useRef } from 'react';
 import { WorkerUrlContext } from './WorkerUrlContext';
 import { ToastContext } from './ToastContext';
 
@@ -20,19 +20,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const workerUrlCtx = useContext(WorkerUrlContext);
     const toastCtx = useContext(ToastContext);
 
-    const [adminPassword, setAdminPasswordState] = useState<string>(() => sessionStorage.getItem('adminPassword') || '');
+    // 使用 useRef 存储密码，避免存储在 sessionStorage 中
+    // 密码仅在内存中保存，页面刷新后需要重新登录
+    const adminPasswordRef = useRef<string>('');
+    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
     const [tempAdminPassword, setTempAdminPassword] = useState<string>('');
-    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(!!sessionStorage.getItem('adminPassword'));
     const [authLoading, setAuthLoading] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isAdminAuthenticated) {
-            sessionStorage.setItem('adminPassword', adminPassword);
-        } else {
-            sessionStorage.removeItem('adminPassword');
-        }
-    }, [isAdminAuthenticated, adminPassword]);
+    // 提供一个 getter 来获取当前密码
+    const adminPassword = adminPasswordRef.current;
 
     const login = useCallback(async (passwordToTry: string): Promise<boolean> => {
         const showToast = toastCtx?.showToast;
@@ -60,7 +57,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const errorData = await response.json();
                 throw new Error(errorData.error || `认证失败: ${response.status}`);
             }
-            setAdminPasswordState(passwordToTry);
+            // 密码仅存储在内存中的 ref，不写入 sessionStorage
+            adminPasswordRef.current = passwordToTry;
             setIsAdminAuthenticated(true);
             showToast("管理员登录成功!", "success");
             setAuthLoading(false);
@@ -75,10 +73,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [workerUrlCtx?.workerUrl, toastCtx]);
 
     const logout = useCallback(() => {
-        setAdminPasswordState('');
+        adminPasswordRef.current = '';
         setTempAdminPassword('');
         setIsAdminAuthenticated(false);
-        sessionStorage.removeItem('adminPassword');
         toastCtx?.showToast("已退出管理员登录。", "success");
     }, [toastCtx?.showToast]);
 
