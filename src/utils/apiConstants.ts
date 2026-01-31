@@ -17,4 +17,5 @@ export const API_PATHS = {
   ADMIN_USERS: '/api/admin/users',
   ADMIN_BAN: '/api/admin/users/ban',
   ADMIN_UNBAN: '/api/admin/users/unban',
+  ADMIN_SETTINGS: '/api/admin/settings',
 };

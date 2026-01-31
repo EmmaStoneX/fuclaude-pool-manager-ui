@@ -6,13 +6,21 @@ import { ToastContext } from '../../contexts/ToastContext';
 import { API_PATHS } from '../../utils/apiConstants';
 import LoadingIndicator from '../LoadingIndicator';
 
+import ToggleSwitch from '../ToggleSwitch';
+
 type FilterType = 'all' | 'active' | 'banned';
 type ProviderFilterType = 'all' | 'linuxdo' | 'github';
+
+interface SystemSettings {
+    login_linuxdo_enabled: boolean;
+    login_github_enabled: boolean;
+}
 
 const UserManagementTab: React.FC = () => {
     const { callApi: fetchUsers, data: usersResponse, isLoading: usersLoading, error: usersError } = useApi<AdminRequestBase, AdminUsersResponse>();
     const { callApi: banApi, isLoading: banLoading } = useApi<AdminBanPayload, AdminApiResponse>();
     const { callApi: unbanApi, isLoading: unbanLoading } = useApi<AdminBanPayload, AdminApiResponse>();
+    const { callApi: settingsApi, isLoading: settingsLoading } = useApi<any, { settings: SystemSettings }>();
 
     const { adminPassword } = useAdminAuth();
     const toastCtx = useContext(ToastContext);
@@ -20,6 +28,10 @@ const UserManagementTab: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<FilterType>('all');
     const [providerFilter, setProviderFilter] = useState<ProviderFilterType>('all');
+    const [settings, setSettings] = useState<SystemSettings>({
+        login_linuxdo_enabled: true,
+        login_github_enabled: true
+    });
 
     const loadUsers = () => {
         if (adminPassword) {
@@ -27,8 +39,42 @@ const UserManagementTab: React.FC = () => {
         }
     };
 
+    const loadSettings = () => {
+        if (adminPassword) {
+            settingsApi(API_PATHS.ADMIN_SETTINGS, 'POST', { admin_password: adminPassword })
+                .then(res => {
+                    if (res?.settings) {
+                        setSettings(res.settings);
+                    }
+                });
+        }
+    };
+
+    const updateSetting = async (key: keyof SystemSettings, value: boolean) => {
+        if (!adminPassword || !toastCtx) return;
+
+        // Optimistic update
+        const oldSettings = { ...settings };
+        setSettings(prev => ({ ...prev, [key]: value }));
+
+        try {
+            await settingsApi(API_PATHS.ADMIN_SETTINGS, 'POST', {
+                admin_password: adminPassword,
+                settings: { [key]: value }
+            });
+            toastCtx.showToast('设置已更新', 'success');
+        } catch (e) {
+            // Revert on error
+            setSettings(oldSettings);
+            toastCtx.showToast('更新设置失败', 'error');
+        }
+    };
+
     useEffect(() => {
-        loadUsers();
+        if (adminPassword) {
+            loadUsers();
+            loadSettings();
+        }
     }, [adminPassword]);
 
     const filteredUsers = useMemo(() => {
@@ -153,7 +199,7 @@ const UserManagementTab: React.FC = () => {
         );
     };
 
-    const isLoading = usersLoading || banLoading || unbanLoading;
+    const isLoading = usersLoading || banLoading || unbanLoading || settingsLoading;
 
     const activeCount = usersResponse?.users?.filter(u => !u.is_banned).length ?? 0;
     const bannedCount = usersResponse?.banned_count ?? 0;
@@ -189,6 +235,34 @@ const UserManagementTab: React.FC = () => {
                 </div>
             </div>
 
+            {/* System Settings (Login Toggles) */}
+            <div className="settings-section" style={{
+                marginBottom: '16px',
+                backgroundColor: '#f8f9fa',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+            }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#374151' }}>登录维护设置</h4>
+                <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                    <ToggleSwitch
+                        label="允许 LinuxDO 登录"
+                        checked={settings.login_linuxdo_enabled}
+                        onChange={(val) => updateSetting('login_linuxdo_enabled', val)}
+                        disabled={settingsLoading}
+                    />
+                    <ToggleSwitch
+                        label="允许 GitHub 登录"
+                        checked={settings.login_github_enabled}
+                        onChange={(val) => updateSetting('login_github_enabled', val)}
+                        disabled={settingsLoading}
+                    />
+                </div>
+                <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
+                    关闭开关后，将在登录页显示“站点维护中”，仅允许管理员账号 (Triceratops2017 / EmmaStoneX) 登录。
+                </p>
+            </div>
+
             {/* Controls */}
             <div className="controls-row">
                 <input
@@ -198,6 +272,7 @@ const UserManagementTab: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
                 />
+
                 <div className="filter-group">
                     <select
                         value={providerFilter}

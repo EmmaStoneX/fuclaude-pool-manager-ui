@@ -75,10 +75,44 @@ export const LinuxDoAuthProvider: React.FC<{ children: ReactNode }> = ({ childre
         }
     }, [getApiBase]);
 
-    // 初始化时检查登录状态
+    // 初始化时检查登录状态和处理错误的 URL 参数
     useEffect(() => {
         refreshUser();
+
+        // 检查 URL 中的 error 参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorParam = urlParams.get('error');
+        if (errorParam) {
+            let errorMsg = '登录失败，请稍后重试';
+            switch (errorParam) {
+                case 'user_banned':
+                    errorMsg = '您的账号已被封禁，无法登录。';
+                    break;
+                case 'maintenance_mode':
+                    errorMsg = '站点维护中，暂时无法登录。请稍后再试。';
+                    break;
+                case 'invalid_state':
+                    errorMsg = '安全验证失败 (Invalid State)，请刷新重试。';
+                    break;
+                case 'token_exchange_failed':
+                    errorMsg = '登录令牌交换失败。';
+                    break;
+                case 'user_fetch_failed':
+                    errorMsg = '获取用户信息失败。';
+                    break;
+                case 'misc_error':
+                    errorMsg = '发生未知错误。';
+                    break;
+                default:
+                    errorMsg = decodeURIComponent(errorParam);
+            }
+            setError(errorMsg);
+
+            // 清除 URL 中的 error 参数，避免刷新依旧显示
+            window.history.replaceState({}, '', window.location.pathname);
+        }
     }, [refreshUser]);
+
 
     // 跳转到 LinuxDO 登录
     const login = useCallback(() => {
