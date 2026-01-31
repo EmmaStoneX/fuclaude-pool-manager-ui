@@ -60,6 +60,12 @@ export const LinuxDoAuthProvider: React.FC<{ children: ReactNode }> = ({ childre
                     setUser(data.user);
                 } else {
                     setUser(null);
+                    // Check for specific session errors (like maintenance mode)
+                    if (data.error === 'maintenance_mode') {
+                        setError('站点维护中，暂时无法登录。请稍后再试。');
+                        // Optionally redirect to update URL for visual feedback if on login page, 
+                        // but setError should be enough for Context consumers.
+                    }
                 }
             } else if (response.status === 401) {
                 setUser(null);
