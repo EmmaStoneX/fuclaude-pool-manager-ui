@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import useApi from '../hooks/useApi';
 import { LoginPayload, LoginResponse } from '../types';
-import EmailCard, { maskEmail } from '../components/EmailCard';
+import EmailCard, { maskEmail, AccountInfo } from '../components/EmailCard';
 import Modal from '../components/Modal';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { generateRandomId } from '../utils/randomId';
@@ -11,18 +11,26 @@ import { API_PATHS } from '../utils/apiConstants';
 import { WorkerUrlContext } from '../contexts/WorkerUrlContext';
 import ContributeModal from '../components/ContributeModal';
 
+/** API response type for emails endpoint */
+interface EmailsApiResponse {
+  emails: string[];
+  accounts?: AccountInfo[];
+}
+
 const UserView: React.FC = () => {
-  const { callApi: fetchEmails, isLoading: emailsLoading, error: emailsError } = useApi<undefined, { emails: string[] }>();
+  const { callApi: fetchEmails, isLoading: emailsLoading, error: emailsError } = useApi<undefined, EmailsApiResponse>();
   const { callApi: loginApi, isLoading: loginLoading } = useApi<LoginPayload, LoginResponse>();
   const toastCtx = useContext(ToastContext);
   const workerUrlCtx = useContext(WorkerUrlContext);
 
   const [emails, setEmails] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<AccountInfo[]>([]);
   const [showUniqueNameModal, setShowUniqueNameModal] = useState<boolean>(false);
   const [showContributeModal, setShowContributeModal] = useState<boolean>(false);
   const [selectedEmailForLogin, setSelectedEmailForLogin] = useState<string | null>(null);
   const [uniqueName, setUniqueName] = useState<string>('');
   const [expiresIn, setExpiresIn] = useState<string>(''); // Use string to handle empty input
+
 
   useEffect(() => {
     // Only fetch emails if the workerUrl is set and valid
@@ -30,13 +38,16 @@ const UserView: React.FC = () => {
       fetchEmails(API_PATHS.GET_EMAILS)
         .then(data => {
           if (data?.emails) setEmails(data.emails);
+          if (data?.accounts) setAccounts(data.accounts);
         })
         .catch(() => {
           // Error is handled by useApi hook
           setEmails([]);
+          setAccounts([]);
         });
     }
   }, [fetchEmails, workerUrlCtx?.workerUrl]);
+
 
   const handleLogin = async (mode: 'random' | 'specific', email?: string, uniqueNameVal?: string, expiresInVal?: string) => {
     if (!toastCtx) return;
@@ -115,11 +126,51 @@ const UserView: React.FC = () => {
       {!emailsLoading && !emailsError && emails.length === 0 && (
         <p className="info-message">当前没有可用的账户。请联系管理员添加。</p>
       )}
+
+      {/* Status legend */}
+      {!emailsLoading && emails.length > 0 && (
+        <div className="status-legend" style={{
+          display: 'flex',
+          gap: '16px',
+          marginBottom: '12px',
+          fontSize: '12px',
+          color: '#666',
+          flexWrap: 'wrap'
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+            空闲
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+            繁忙
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+            不可用
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ color: '#e94560' }}>♥</span>
+            用户投喂
+          </span>
+        </div>
+      )}
+
       <div className="email-list" role="list">
-        {emails.map((emailToList) => ( // Renamed email to emailToList to avoid conflict
-          <EmailCard key={emailToList} email={emailToList} onClick={() => openUniqueNameModal(emailToList)} />
-        ))}
+        {emails.map((emailToList) => {
+          // Find account info for this email
+          const accountInfo = accounts.find(acc => acc.email === emailToList);
+          return (
+            <EmailCard
+              key={emailToList}
+              email={emailToList}
+              onClick={() => openUniqueNameModal(emailToList)}
+              accountInfo={accountInfo}
+            />
+          );
+        })}
       </div>
+
 
       <div className="contribute-section">
         <button
@@ -181,14 +232,16 @@ const UserView: React.FC = () => {
         isOpen={showContributeModal}
         onClose={() => setShowContributeModal(false)}
         onSuccess={() => {
-          // Re-fetch emails after successful contribution
+          // Re-fetch emails and accounts after successful contribution
           if (workerUrlCtx?.workerUrl) {
             fetchEmails(API_PATHS.GET_EMAILS).then(data => {
               if (data?.emails) setEmails(data.emails);
+              if (data?.accounts) setAccounts(data.accounts);
             });
           }
         }}
       />
+
 
       <style>{`
         .contribute-section {
