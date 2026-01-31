@@ -316,6 +316,7 @@ const UserManagementTab: React.FC = () => {
                             <tr>
                                 <th style={{ width: '40px' }}>头像</th>
                                 <th>用户名</th>
+                                <th>邮箱</th>
                                 <th>来源</th>
                                 <th>等级</th>
                                 <th>登录次数</th>
@@ -347,8 +348,10 @@ const UserManagementTab: React.FC = () => {
                                         <div className="user-info-cell">
                                             <span className="username">{user.username}</span>
                                             {user.name && <span className="display-name">{user.name}</span>}
-                                            {user.email && <span className="email">{user.email}</span>}
                                         </div>
+                                    </td>
+                                    <td data-label="邮箱">
+                                        <span className="email-text">{user.email || '-'}</span>
                                     </td>
                                     <td data-label="来源">{getProviderBadge(user.auth_provider)}</td>
                                     <td data-label="等级">
@@ -583,9 +586,9 @@ const UserManagementTab: React.FC = () => {
                     color: #6b7280;
                 }
                 
-                .email {
-                    font-size: 11px;
-                    color: #9ca3af;
+                .email-text {
+                    font-size: 13px;
+                    color: #4b5563;
                 }
                 
                 .status-badge {
