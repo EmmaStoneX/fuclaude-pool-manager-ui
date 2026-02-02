@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         FuClaude 增强工具
 // @namespace    http://tampermonkey.net/
-// @version      2.2
-// @description  在 FuClaude 页面添加返回 Pool Manager 按钮 + 会话导出功能
+// @version      2.3
+// @description  在 FuClaude 页面添加侧边吸附面板：返回首页 + 会话导出功能
 // @author       You
 // @match        https://claude.zxvmax.com/*
 // @grant        GM_addStyle
@@ -416,90 +416,163 @@
         setTimeout(() => toast.remove(), 2000);
     }
 
-    // 创建主按钮和菜单
+    // 面板状态
+    let isPanelExpanded = true;
+    let isExportMenuOpen = false;
+
+    // 创建侧边面板
     function createToolbar() {
-        if (document.getElementById('fc-toolbar')) return;
+        if (document.getElementById('fc-panel')) return;
 
         // 注入样式
         const css = `
-            #fc-toolbar {
+            /* 主面板容器 */
+            #fc-panel {
                 position: fixed;
-                bottom: 20px;
-                right: 20px;
+                top: 50%;
+                right: 0;
+                transform: translateY(-50%);
                 z-index: 99999;
                 display: flex;
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 10px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+                align-items: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
-            .fc-btn {
+            #fc-panel.collapsed {
+                transform: translateY(-50%) translateX(calc(100% - 32px));
+            }
+            
+            /* 展开/收起箭头按钮 */
+            .fc-toggle-btn {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                width: 180px;
-                padding: 14px 24px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(0, 0, 0, 0.06);
-                border-radius: 50px;
-                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                width: 32px;
+                height: 64px;
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-right: none;
+                border-radius: 12px 0 0 12px;
                 cursor: pointer;
-                font-size: 16px;
+                box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+            }
+            
+            .fc-toggle-btn:hover {
+                background: #f5f5f5;
+            }
+            
+            .fc-toggle-btn svg {
+                width: 16px;
+                height: 16px;
+                color: #666;
+                transition: transform 0.3s ease;
+            }
+            
+            #fc-panel.collapsed .fc-toggle-btn svg {
+                transform: rotate(180deg);
+            }
+            
+            /* 主内容面板 */
+            .fc-content-panel {
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 16px 0 0 16px;
+                box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                min-width: 140px;
+            }
+            
+            /* 功能按钮通用样式 */
+            .fc-action-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 12px 16px;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border: none;
+                border-radius: 10px;
+                color: #fff;
+                font-size: 14px;
                 font-weight: 500;
-                color: #333;
-                transition: all 0.25s ease;
+                cursor: pointer;
+                transition: all 0.2s ease;
                 text-decoration: none;
                 white-space: nowrap;
-                user-select: none;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
             }
             
-            .fc-btn:hover {
+            .fc-action-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+                background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            }
+            
+            .fc-action-btn:active {
+                transform: translateY(0);
+            }
+            
+            .fc-action-btn svg {
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+            
+            /* 导出子菜单容器 */
+            .fc-export-wrapper {
+                position: relative;
+            }
+            
+            /* 导出下拉菜单 */
+            .fc-export-menu {
+                position: absolute;
+                right: 100%;
+                top: 0;
+                margin-right: 8px;
                 background: #fff;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-                transform: translateY(-2px);
-            }
-            
-            .fc-btn .icon {
-                font-size: 20px;
-            }
-            
-            .fc-menu {
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                padding: 8px;
                 display: none;
                 flex-direction: column;
-                gap: 6px;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.98);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(0, 0, 0, 0.08);
-                border-radius: 16px;
-                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-                min-width: 180px;
+                gap: 4px;
+                min-width: 160px;
+                z-index: 100000;
             }
             
-            .fc-menu.show { display: flex; }
+            .fc-export-menu.show {
+                display: flex;
+            }
             
-            .fc-menu-item {
+            .fc-export-menu-item {
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 padding: 10px 14px;
-                border-radius: 10px;
+                border-radius: 8px;
                 cursor: pointer;
-                transition: background 0.15s;
-                font-size: 14px;
+                transition: all 0.15s ease;
+                font-size: 13px;
                 color: #333;
+                white-space: nowrap;
             }
             
-            .fc-menu-item:hover {
-                background: #f0f0f0;
+            .fc-export-menu-item:hover {
+                background: #f0fdf4;
+                color: #059669;
             }
             
-            .fc-menu-item .icon {
+            .fc-export-menu-item .icon {
                 width: 20px;
                 text-align: center;
+                font-size: 16px;
             }
             
             .fc-divider {
@@ -510,26 +583,39 @@
             
             /* 暗色模式 */
             @media (prefers-color-scheme: dark) {
-                .fc-btn {
-                    background: rgba(40, 40, 40, 0.95);
-                    border-color: rgba(255, 255, 255, 0.1);
+                .fc-toggle-btn {
+                    background: #2d2d2d;
+                    border-color: #404040;
+                }
+                .fc-toggle-btn:hover {
+                    background: #3d3d3d;
+                }
+                .fc-toggle-btn svg {
+                    color: #a0a0a0;
+                }
+                .fc-content-panel {
+                    background: #2d2d2d;
+                    border-color: #404040;
+                }
+                .fc-action-btn {
+                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                }
+                .fc-action-btn:hover {
+                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                }
+                .fc-export-menu {
+                    background: #2d2d2d;
+                    border-color: #404040;
+                }
+                .fc-export-menu-item {
                     color: #e5e5e5;
                 }
-                .fc-btn:hover {
-                    background: rgba(50, 50, 50, 1);
-                }
-                .fc-menu {
-                    background: rgba(40, 40, 40, 0.98);
-                    border-color: rgba(255, 255, 255, 0.1);
-                }
-                .fc-menu-item {
-                    color: #e5e5e5;
-                }
-                .fc-menu-item:hover {
-                    background: rgba(255,255,255,0.1);
+                .fc-export-menu-item:hover {
+                    background: #1a3a2a;
+                    color: #34d399;
                 }
                 .fc-divider {
-                    background: rgba(255,255,255,0.1);
+                    background: #404040;
                 }
             }
             
@@ -549,88 +635,145 @@
             document.head.appendChild(style);
         }
 
-        // 创建 DOM 结构
-        const toolbar = document.createElement('div');
-        toolbar.id = 'fc-toolbar';
+        // 创建面板容器
+        const panel = document.createElement('div');
+        panel.id = 'fc-panel';
+
+        // 创建展开/收起按钮
+        const toggleBtn = document.createElement('div');
+        toggleBtn.className = 'fc-toggle-btn';
+        toggleBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        `;
+        panel.appendChild(toggleBtn);
+
+        // 创建主内容面板
+        const contentPanel = document.createElement('div');
+        contentPanel.className = 'fc-content-panel';
+
+        // 返回 Pool Manager 按钮
+        const backBtn = document.createElement('a');
+        backBtn.href = POOL_MANAGER_URL;
+        backBtn.className = 'fc-action-btn';
+        backBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>返回首页</span>
+        `;
+        contentPanel.appendChild(backBtn);
+
+        // 导出当前会话按钮 + 菜单
+        const exportWrapper = document.createElement('div');
+        exportWrapper.className = 'fc-export-wrapper';
+
+        const exportBtn = document.createElement('div');
+        exportBtn.className = 'fc-action-btn';
+        exportBtn.id = 'fc-export-btn';
+        exportBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>导出当前</span>
+        `;
+        exportWrapper.appendChild(exportBtn);
 
         // 导出菜单
-        const menu = document.createElement('div');
-        menu.className = 'fc-menu';
-        menu.id = 'fc-export-menu';
+        const exportMenu = document.createElement('div');
+        exportMenu.className = 'fc-export-menu';
+        exportMenu.id = 'fc-export-menu';
 
         const menuItems = [
-            { icon: '📝', text: 'Markdown (.md)', action: 'md' },
+            { icon: '📝', text: 'Markdown', action: 'md' },
             { icon: '📄', text: 'PDF 文档', action: 'pdf' },
-            { icon: '📘', text: 'Word 文档 (.doc)', action: 'word' },
+            { icon: '📘', text: 'Word', action: 'word' },
             { type: 'divider' },
-            { icon: '📃', text: '纯文本 (.txt)', action: 'txt' },
-            { icon: '🔧', text: 'JSON 数据', action: 'json' }
+            { icon: '📃', text: '纯文本', action: 'txt' },
+            { icon: '🔧', text: 'JSON', action: 'json' }
         ];
 
         menuItems.forEach(item => {
             if (item.type === 'divider') {
                 const divider = document.createElement('div');
                 divider.className = 'fc-divider';
-                menu.appendChild(divider);
+                exportMenu.appendChild(divider);
             } else {
                 const div = document.createElement('div');
-                div.className = 'fc-menu-item';
+                div.className = 'fc-export-menu-item';
                 div.dataset.action = item.action;
-
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'icon';
-                iconSpan.textContent = item.icon;
-
-                const textSpan = document.createElement('span');
-                textSpan.textContent = item.text;
-
-                div.appendChild(iconSpan);
-                div.appendChild(textSpan);
-                menu.appendChild(div);
+                div.innerHTML = `
+                    <span class="icon">${item.icon}</span>
+                    <span>${item.text}</span>
+                `;
+                exportMenu.appendChild(div);
             }
         });
 
-        toolbar.appendChild(menu);
+        exportWrapper.appendChild(exportMenu);
+        contentPanel.appendChild(exportWrapper);
 
-        // 导出按钮
-        const exportBtn = document.createElement('div');
-        exportBtn.className = 'fc-btn';
-        exportBtn.id = 'fc-export-btn';
-        exportBtn.innerHTML = `
-            <span class="icon">📥</span>
-            <span>导出会话</span>
+        // 导出全部按钮（预留功能）
+        const exportAllBtn = document.createElement('div');
+        exportAllBtn.className = 'fc-action-btn';
+        exportAllBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>导出全部</span>
         `;
-        toolbar.appendChild(exportBtn);
+        exportAllBtn.addEventListener('click', () => {
+            showToast('导出全部功能开发中...');
+        });
+        contentPanel.appendChild(exportAllBtn);
 
-        // 返回按钮
-        const backBtn = document.createElement('a');
-        backBtn.href = POOL_MANAGER_URL;
-        backBtn.className = 'fc-btn';
-        backBtn.innerHTML = `
-            <span class="icon">🏠</span>
-            <span>Pool Manager</span>
-        `;
-        toolbar.appendChild(backBtn);
+        panel.appendChild(contentPanel);
 
         // 添加到页面
-        document.body.appendChild(toolbar);
+        document.body.appendChild(panel);
 
-        // 绑定事件
+        // 绑定展开/收起事件
+        toggleBtn.addEventListener('click', () => {
+            isPanelExpanded = !isPanelExpanded;
+            panel.classList.toggle('collapsed', !isPanelExpanded);
+            // 收起面板时也关闭导出菜单
+            if (!isPanelExpanded) {
+                exportMenu.classList.remove('show');
+                isExportMenuOpen = false;
+            }
+        });
+
+        // 绑定导出按钮事件
         exportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            menu.classList.toggle('show');
+            isExportMenuOpen = !isExportMenuOpen;
+            exportMenu.classList.toggle('show', isExportMenuOpen);
         });
 
-        document.addEventListener('click', () => {
-            menu.classList.remove('show');
+        // 点击其他地方关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!exportWrapper.contains(e.target)) {
+                exportMenu.classList.remove('show');
+                isExportMenuOpen = false;
+            }
         });
 
-        menu.addEventListener('click', (e) => {
+        // 导出菜单项点击事件
+        exportMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            const action = e.target.closest('.fc-menu-item')?.dataset.action;
+            const action = e.target.closest('.fc-export-menu-item')?.dataset.action;
             if (!action) return;
 
-            menu.classList.remove('show');
+            exportMenu.classList.remove('show');
+            isExportMenuOpen = false;
 
             switch (action) {
                 case 'md': exportAsMarkdown(); break;
@@ -641,7 +784,7 @@
             }
         });
 
-        console.log('[FuClaude Tools] 工具栏已加载');
+        console.log('[FuClaude Tools] 侧边面板已加载');
     }
 
     // ==================== 初始化 ====================
@@ -654,7 +797,7 @@
 
     // 监听 DOM 变化
     const observer = new MutationObserver(() => {
-        if (!document.getElementById('fc-toolbar')) {
+        if (!document.getElementById('fc-panel')) {
             createToolbar();
         }
     });

@@ -1,4 +1,4 @@
-// FuClaude 增强工具 - Chrome Extension Content Script
+// FuClaude 增强工具 - Chrome Extension Content Script v2.3
 (function () {
     'use strict';
 
@@ -344,6 +344,10 @@
 
     // ==================== UI 组件 ====================
 
+    // 面板状态
+    let isPanelExpanded = true;
+    let isExportMenuOpen = false;
+
     function showToast(message) {
         const existing = document.getElementById('fc-toast');
         if (existing) existing.remove();
@@ -356,98 +360,147 @@
     }
 
     function createToolbar() {
-        if (document.getElementById('fc-toolbar')) return;
+        if (document.getElementById('fc-panel')) return;
 
-        const toolbar = document.createElement('div');
-        toolbar.id = 'fc-toolbar';
+        // 创建面板容器
+        const panel = document.createElement('div');
+        panel.id = 'fc-panel';
+
+        // 创建展开/收起按钮
+        const toggleBtn = document.createElement('div');
+        toggleBtn.className = 'fc-toggle-btn';
+        toggleBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        `;
+        panel.appendChild(toggleBtn);
+
+        // 创建主内容面板
+        const contentPanel = document.createElement('div');
+        contentPanel.className = 'fc-content-panel';
+
+        // 返回 Pool Manager 按钮
+        const backBtn = document.createElement('a');
+        backBtn.href = POOL_MANAGER_URL;
+        backBtn.className = 'fc-action-btn';
+        backBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>返回首页</span>
+        `;
+        contentPanel.appendChild(backBtn);
+
+        // 导出当前会话按钮 + 菜单
+        const exportWrapper = document.createElement('div');
+        exportWrapper.className = 'fc-export-wrapper';
+
+        const exportBtn = document.createElement('div');
+        exportBtn.className = 'fc-action-btn';
+        exportBtn.id = 'fc-export-btn';
+        exportBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>导出当前</span>
+        `;
+        exportWrapper.appendChild(exportBtn);
 
         // 导出菜单
-        const menu = document.createElement('div');
-        menu.className = 'fc-menu';
-        menu.id = 'fc-export-menu';
+        const exportMenu = document.createElement('div');
+        exportMenu.className = 'fc-export-menu';
+        exportMenu.id = 'fc-export-menu';
 
         const menuItems = [
-            { icon: '📝', text: 'Markdown (.md)', action: 'md' },
+            { icon: '📝', text: 'Markdown', action: 'md' },
             { icon: '📄', text: 'PDF 文档', action: 'pdf' },
-            { icon: '📘', text: 'Word 文档 (.doc)', action: 'word' },
+            { icon: '📘', text: 'Word', action: 'word' },
             { type: 'divider' },
-            { icon: '📃', text: '纯文本 (.txt)', action: 'txt' },
-            { icon: '🔧', text: 'JSON 数据', action: 'json' }
+            { icon: '📃', text: '纯文本', action: 'txt' },
+            { icon: '🔧', text: 'JSON', action: 'json' }
         ];
 
         menuItems.forEach(item => {
             if (item.type === 'divider') {
                 const divider = document.createElement('div');
                 divider.className = 'fc-divider';
-                menu.appendChild(divider);
+                exportMenu.appendChild(divider);
             } else {
                 const div = document.createElement('div');
-                div.className = 'fc-menu-item';
+                div.className = 'fc-export-menu-item';
                 div.dataset.action = item.action;
-
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'icon';
-                iconSpan.textContent = item.icon;
-
-                const textSpan = document.createElement('span');
-                textSpan.textContent = item.text;
-
-                div.appendChild(iconSpan);
-                div.appendChild(textSpan);
-                menu.appendChild(div);
+                div.innerHTML = `
+                    <span class="icon">${item.icon}</span>
+                    <span>${item.text}</span>
+                `;
+                exportMenu.appendChild(div);
             }
         });
 
-        toolbar.appendChild(menu);
+        exportWrapper.appendChild(exportMenu);
+        contentPanel.appendChild(exportWrapper);
 
-        // 导出按钮
-        const exportBtn = document.createElement('div');
-        exportBtn.className = 'fc-btn';
-        exportBtn.id = 'fc-export-btn';
+        // 导出全部按钮（预留功能）
+        const exportAllBtn = document.createElement('div');
+        exportAllBtn.className = 'fc-action-btn';
+        exportAllBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>导出全部</span>
+        `;
+        exportAllBtn.addEventListener('click', () => {
+            showToast('导出全部功能开发中...');
+        });
+        contentPanel.appendChild(exportAllBtn);
 
-        const exportIcon = document.createElement('span');
-        exportIcon.className = 'icon';
-        exportIcon.textContent = '📥';
-        const exportText = document.createElement('span');
-        exportText.textContent = '导出会话';
+        panel.appendChild(contentPanel);
 
-        exportBtn.appendChild(exportIcon);
-        exportBtn.appendChild(exportText);
-        toolbar.appendChild(exportBtn);
+        // 添加到页面
+        document.body.appendChild(panel);
 
-        // 返回按钮
-        const backBtn = document.createElement('a');
-        backBtn.href = POOL_MANAGER_URL;
-        backBtn.className = 'fc-btn';
+        // 绑定展开/收起事件
+        toggleBtn.addEventListener('click', () => {
+            isPanelExpanded = !isPanelExpanded;
+            panel.classList.toggle('collapsed', !isPanelExpanded);
+            // 收起面板时也关闭导出菜单
+            if (!isPanelExpanded) {
+                exportMenu.classList.remove('show');
+                isExportMenuOpen = false;
+            }
+        });
 
-        const backIcon = document.createElement('span');
-        backIcon.className = 'icon';
-        backIcon.textContent = '🏠';
-        const backText = document.createElement('span');
-        backText.textContent = 'Pool Manager';
-
-        backBtn.appendChild(backIcon);
-        backBtn.appendChild(backText);
-        toolbar.appendChild(backBtn);
-
-        document.body.appendChild(toolbar);
-
-        // 绑定事件
+        // 绑定导出按钮事件
         exportBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            menu.classList.toggle('show');
+            isExportMenuOpen = !isExportMenuOpen;
+            exportMenu.classList.toggle('show', isExportMenuOpen);
         });
 
-        document.addEventListener('click', () => {
-            menu.classList.remove('show');
+        // 点击其他地方关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!exportWrapper.contains(e.target)) {
+                exportMenu.classList.remove('show');
+                isExportMenuOpen = false;
+            }
         });
 
-        menu.addEventListener('click', (e) => {
+        // 导出菜单项点击事件
+        exportMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            const action = e.target.closest('.fc-menu-item')?.dataset.action;
+            const action = e.target.closest('.fc-export-menu-item')?.dataset.action;
             if (!action) return;
 
-            menu.classList.remove('show');
+            exportMenu.classList.remove('show');
+            isExportMenuOpen = false;
 
             switch (action) {
                 case 'md': exportAsMarkdown(); break;
@@ -458,7 +511,7 @@
             }
         });
 
-        console.log('[FuClaude Tools] Chrome 扩展工具栏已加载');
+        console.log('[FuClaude Tools] 侧边面板已加载 v2.3');
     }
 
     // ==================== 初始化 ====================
@@ -469,9 +522,9 @@
         window.addEventListener('load', () => setTimeout(createToolbar, 500));
     }
 
-    // 监听 DOM 变化，确保工具栏始终存在
+    // 监听 DOM 变化，确保面板始终存在
     const observer = new MutationObserver(() => {
-        if (!document.getElementById('fc-toolbar')) {
+        if (!document.getElementById('fc-panel')) {
             createToolbar();
         }
     });

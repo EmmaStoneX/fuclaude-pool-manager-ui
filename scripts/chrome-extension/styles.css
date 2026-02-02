@@ -1,83 +1,150 @@
-#fc-toolbar {
+/* 主面板容器 */
+#fc-panel {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
     z-index: 99999;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fc-btn {
+#fc-panel.collapsed {
+    transform: translateY(-50%) translateX(calc(100% - 32px));
+}
+
+/* 展开/收起箭头按钮 */
+.fc-toggle-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    width: 180px;
-    padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 50px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    width: 32px;
+    height: 64px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-right: none;
+    border-radius: 12px 0 0 12px;
     cursor: pointer;
-    font-size: 16px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.fc-toggle-btn:hover {
+    background: #f5f5f5;
+}
+
+.fc-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+    color: #666;
+    transition: transform 0.3s ease;
+}
+
+#fc-panel.collapsed .fc-toggle-btn svg {
+    transform: rotate(180deg);
+}
+
+/* 主内容面板 */
+.fc-content-panel {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 16px 0 0 16px;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 140px;
+}
+
+/* 功能按钮通用样式 */
+.fc-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
     font-weight: 500;
-    color: #333;
-    transition: all 0.25s ease;
+    cursor: pointer;
+    transition: all 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
-    user-select: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.fc-btn:hover {
+.fc-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+.fc-action-btn:active {
+    transform: translateY(0);
+}
+
+.fc-action-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* 导出子菜单容器 */
+.fc-export-wrapper {
+    position: relative;
+}
+
+/* 导出下拉菜单 */
+.fc-export-menu {
+    position: absolute;
+    right: 100%;
+    top: 0;
+    margin-right: 8px;
     background: #fff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-}
-
-.fc-btn .icon {
-    font-size: 20px;
-}
-
-.fc-menu {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px;
     display: none;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-    min-width: 180px;
+    gap: 4px;
+    min-width: 160px;
+    z-index: 100000;
 }
 
-.fc-menu.show {
+.fc-export-menu.show {
     display: flex;
 }
 
-.fc-menu-item {
+.fc-export-menu-item {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.15s;
-    font-size: 14px;
+    transition: all 0.15s ease;
+    font-size: 13px;
     color: #333;
+    white-space: nowrap;
 }
 
-.fc-menu-item:hover {
-    background: #f0f0f0;
+.fc-export-menu-item:hover {
+    background: #f0fdf4;
+    color: #059669;
 }
 
-.fc-menu-item .icon {
+.fc-export-menu-item .icon {
     width: 20px;
     text-align: center;
+    font-size: 16px;
 }
 
 .fc-divider {
@@ -125,30 +192,47 @@
 
 /* 暗色模式 */
 @media (prefers-color-scheme: dark) {
-    .fc-btn {
-        background: rgba(40, 40, 40, 0.95);
-        border-color: rgba(255, 255, 255, 0.1);
+    .fc-toggle-btn {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+
+    .fc-toggle-btn:hover {
+        background: #3d3d3d;
+    }
+
+    .fc-toggle-btn svg {
+        color: #a0a0a0;
+    }
+
+    .fc-content-panel {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+
+    .fc-action-btn {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    .fc-action-btn:hover {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .fc-export-menu {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+
+    .fc-export-menu-item {
         color: #e5e5e5;
     }
 
-    .fc-btn:hover {
-        background: rgba(50, 50, 50, 1);
-    }
-
-    .fc-menu {
-        background: rgba(40, 40, 40, 0.98);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .fc-menu-item {
-        color: #e5e5e5;
-    }
-
-    .fc-menu-item:hover {
-        background: rgba(255, 255, 255, 0.1);
+    .fc-export-menu-item:hover {
+        background: #1a3a2a;
+        color: #34d399;
     }
 
     .fc-divider {
-        background: rgba(255, 255, 255, 0.1);
+        background: #404040;
     }
 }
