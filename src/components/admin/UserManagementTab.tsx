@@ -315,14 +315,14 @@ const UserManagementTab: React.FC = () => {
                         <thead>
                             <tr>
                                 <th style={{ width: '40px' }}>头像</th>
-                                <th>用户名</th>
-                                <th>邮箱</th>
-                                <th>来源</th>
-                                <th>等级</th>
-                                <th>登录次数</th>
-                                <th>最后登录</th>
-                                <th>状态</th>
-                                <th style={{ width: '100px' }}>操作</th>
+                                <th style={{ width: '15%' }}>用户名</th>
+                                <th style={{ width: '22%' }}>邮箱</th>
+                                <th style={{ width: '10%' }}>来源</th>
+                                <th style={{ width: '8%' }}>等级</th>
+                                <th style={{ width: '10%' }}>登录次数</th>
+                                <th style={{ width: '12%' }}>最后登录</th>
+                                <th style={{ width: '8%' }}>状态</th>
+                                <th style={{ width: '70px' }}>操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -351,7 +351,7 @@ const UserManagementTab: React.FC = () => {
                                         </div>
                                     </td>
                                     <td data-label="邮箱">
-                                        <span className="email-text">{user.email || '-'}</span>
+                                        <span className="email-text" title={user.email || ''}>{user.email || '-'}</span>
                                     </td>
                                     <td data-label="来源">{getProviderBadge(user.auth_provider)}</td>
                                     <td data-label="等级">
@@ -520,6 +520,7 @@ const UserManagementTab: React.FC = () => {
                     width: 100%;
                     border-collapse: collapse;
                     font-size: 13px;
+                    table-layout: fixed;
                 }
                 
                 .user-table th {
@@ -589,6 +590,12 @@ const UserManagementTab: React.FC = () => {
                 .email-text {
                     font-size: 13px;
                     color: #4b5563;
+                    max-width: 100%;
+                    display: inline-block;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    vertical-align: middle;
                 }
                 
                 .status-badge {
