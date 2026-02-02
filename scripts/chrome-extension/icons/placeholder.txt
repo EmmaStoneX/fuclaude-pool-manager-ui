@@ -1,0 +1,6 @@
+请在此目录放置扩展图标文件：
+- icon16.png (16x16)
+- icon48.png (48x48)
+- icon128.png (128x128)
+
+可以使用任意 PNG 图标，或者临时删除 manifest.json 中的 icons 配置来跳过此步骤。

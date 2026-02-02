@@ -1,0 +1,24 @@
+{
+    "manifest_version": 3,
+    "name": "FuClaude 增强工具",
+    "version": "2.2",
+    "description": "在 FuClaude 页面添加返回 Pool Manager 按钮 + 会话导出功能",
+    "permissions": [],
+    "host_permissions": [
+        "https://claude.zxvmax.com/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://claude.zxvmax.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "styles.css"
+            ],
+            "run_at": "document_end"
+        }
+    ]
+}

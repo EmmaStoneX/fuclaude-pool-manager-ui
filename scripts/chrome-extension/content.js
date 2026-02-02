@@ -1,14 +1,4 @@
-// ==UserScript==
-// @name         FuClaude 增强工具
-// @namespace    http://tampermonkey.net/
-// @version      2.2
-// @description  在 FuClaude 页面添加返回 Pool Manager 按钮 + 会话导出功能
-// @author       You
-// @match        https://claude.zxvmax.com/*
-// @grant        GM_addStyle
-// @run-at       document-end
-// ==/UserScript==
-
+// FuClaude 增强工具 - Chrome Extension Content Script
 (function () {
     'use strict';
 
@@ -26,10 +16,6 @@
     // 从页面提取会话内容
     function extractConversationFromDOM() {
         const messages = [];
-
-        // 根据页面结构分析结果：
-        // 用户消息: .font-user-message 类
-        // Claude回复: .font-claude-response 类
 
         // 获取所有用户消息
         const userMessages = document.querySelectorAll('[class*="font-user-message"]');
@@ -68,7 +54,7 @@
         // 按页面位置排序（从上到下）
         allMessages.sort((a, b) => a.top - b.top);
 
-        // 去重（有时候可能会有嵌套元素导致重复）
+        // 去重
         const seen = new Set();
         allMessages.forEach(msg => {
             const key = msg.content.substring(0, 50);
@@ -87,11 +73,9 @@
 
     // 获取会话标题
     function getConversationTitle() {
-        // 尝试从页面标题获取
         const titleEl = document.querySelector('title');
         let title = titleEl ? titleEl.innerText.replace(' - Claude', '').trim() : '';
 
-        // 尝试从侧边栏获取当前选中的会话名
         if (!title || title === 'Claude') {
             const activeChat = document.querySelector('[class*="active"] [class*="title"], .bg-accent [class*="truncate"]');
             if (activeChat) {
@@ -104,12 +88,11 @@
 
     // ==================== 导出格式转换 ====================
 
-    // 转换为 Markdown
     function toMarkdown(messages, title) {
         let md = `# ${title}\n\n`;
         md += `> 导出时间: ${new Date().toLocaleString('zh-CN')}\n\n---\n\n`;
 
-        messages.forEach((msg, idx) => {
+        messages.forEach((msg) => {
             const role = msg.role === 'human' ? '👤 **用户**' : '🤖 **Claude**';
             md += `## ${role}\n\n${msg.content}\n\n---\n\n`;
         });
@@ -117,25 +100,6 @@
         return md;
     }
 
-    // HTML转纯文本（保留格式）
-    function htmlToFormattedText(html) {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-
-        // 处理代码块
-        temp.querySelectorAll('pre').forEach(pre => {
-            pre.innerText = '\n```\n' + pre.innerText + '\n```\n';
-        });
-
-        // 处理内联代码
-        temp.querySelectorAll('code:not(pre code)').forEach(code => {
-            code.innerText = '`' + code.innerText + '`';
-        });
-
-        return temp.innerText;
-    }
-
-    // 生成用于PDF/Word的HTML
     function toFormattedHTML(messages, title) {
         return `
 <!DOCTYPE html>
@@ -210,7 +174,6 @@
         pre code {
             background: none;
             padding: 0;
-            padding: 0;
         }
         blockquote {
             border-left: 4px solid #ddd;
@@ -259,7 +222,6 @@
 
     // ==================== 导出功能 ====================
 
-    // 下载文件
     function downloadFile(content, filename, type) {
         const blob = new Blob([content], { type });
         const url = URL.createObjectURL(blob);
@@ -272,7 +234,6 @@
         URL.revokeObjectURL(url);
     }
 
-    // 导出为 Markdown
     function exportAsMarkdown() {
         const messages = extractConversationFromDOM();
         if (messages.length === 0) {
@@ -285,7 +246,6 @@
         showToast('Markdown 导出成功！');
     }
 
-    // 导出为 PDF（使用浏览器打印功能）
     function exportAsPDF() {
         const messages = extractConversationFromDOM();
         if (messages.length === 0) {
@@ -296,7 +256,6 @@
         const title = getConversationTitle();
         const html = toFormattedHTML(messages, title);
 
-        // 使用 Blob URL 打开新窗口，避免 document.write 被拦截
         const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
@@ -306,11 +265,9 @@
             return;
         }
 
-        // 等待加载完成后打印
         printWindow.onload = function () {
             setTimeout(() => {
                 printWindow.print();
-                // 打印后释放 URL
                 URL.revokeObjectURL(url);
             }, 500);
         };
@@ -318,7 +275,6 @@
         showToast('请在打印对话框中选择"另存为 PDF"');
     }
 
-    // 导出为 Word (HTML格式，Word可直接打开)
     function exportAsWord() {
         const messages = extractConversationFromDOM();
         if (messages.length === 0) {
@@ -329,7 +285,6 @@
         const title = getConversationTitle();
         const html = toFormattedHTML(messages, title);
 
-        // Word 可以直接打开 HTML 文件
         const blob = new Blob(['\ufeff' + html], {
             type: 'application/msword;charset=utf-8'
         });
@@ -345,7 +300,6 @@
         showToast('Word 导出成功！');
     }
 
-    // 导出为纯文本
     function exportAsText() {
         const messages = extractConversationFromDOM();
         if (messages.length === 0) {
@@ -366,7 +320,6 @@
         showToast('文本导出成功！');
     }
 
-    // 导出为 JSON
     function exportAsJSON() {
         const messages = extractConversationFromDOM();
         if (messages.length === 0) {
@@ -391,165 +344,20 @@
 
     // ==================== UI 组件 ====================
 
-    // Toast 提示
     function showToast(message) {
         const existing = document.getElementById('fc-toast');
         if (existing) existing.remove();
 
         const toast = document.createElement('div');
         toast.id = 'fc-toast';
-        toast.innerText = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 999999;
-            animation: fadeInOut 2s ease;
-        `;
+        toast.textContent = message;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2000);
     }
 
-    // 创建主按钮和菜单
     function createToolbar() {
         if (document.getElementById('fc-toolbar')) return;
 
-        // 注入样式
-        const css = `
-            #fc-toolbar {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                z-index: 99999;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 10px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-            }
-            
-            .fc-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                width: 180px;
-                padding: 14px 24px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(0, 0, 0, 0.06);
-                border-radius: 50px;
-                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 500;
-                color: #333;
-                transition: all 0.25s ease;
-                text-decoration: none;
-                white-space: nowrap;
-                user-select: none;
-            }
-            
-            .fc-btn:hover {
-                background: #fff;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-                transform: translateY(-2px);
-            }
-            
-            .fc-btn .icon {
-                font-size: 20px;
-            }
-            
-            .fc-menu {
-                display: none;
-                flex-direction: column;
-                gap: 6px;
-                padding: 8px;
-                background: rgba(255, 255, 255, 0.98);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(0, 0, 0, 0.08);
-                border-radius: 16px;
-                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-                min-width: 180px;
-            }
-            
-            .fc-menu.show { display: flex; }
-            
-            .fc-menu-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 10px 14px;
-                border-radius: 10px;
-                cursor: pointer;
-                transition: background 0.15s;
-                font-size: 14px;
-                color: #333;
-            }
-            
-            .fc-menu-item:hover {
-                background: #f0f0f0;
-            }
-            
-            .fc-menu-item .icon {
-                width: 20px;
-                text-align: center;
-            }
-            
-            .fc-divider {
-                height: 1px;
-                background: #e5e5e5;
-                margin: 4px 0;
-            }
-            
-            /* 暗色模式 */
-            @media (prefers-color-scheme: dark) {
-                .fc-btn {
-                    background: rgba(40, 40, 40, 0.95);
-                    border-color: rgba(255, 255, 255, 0.1);
-                    color: #e5e5e5;
-                }
-                .fc-btn:hover {
-                    background: rgba(50, 50, 50, 1);
-                }
-                .fc-menu {
-                    background: rgba(40, 40, 40, 0.98);
-                    border-color: rgba(255, 255, 255, 0.1);
-                }
-                .fc-menu-item {
-                    color: #e5e5e5;
-                }
-                .fc-menu-item:hover {
-                    background: rgba(255,255,255,0.1);
-                }
-                .fc-divider {
-                    background: rgba(255,255,255,0.1);
-                }
-            }
-            
-            @keyframes fadeInOut {
-                0% { opacity: 0; transform: translate(-50%, 20px); }
-                15% { opacity: 1; transform: translate(-50%, 0); }
-                85% { opacity: 1; transform: translate(-50%, 0); }
-                100% { opacity: 0; transform: translate(-50%, -20px); }
-            }
-        `;
-
-        if (typeof GM_addStyle !== 'undefined') {
-            GM_addStyle(css);
-        } else {
-            const style = document.createElement('style');
-            style.textContent = css;
-            document.head.appendChild(style);
-        }
-
-        // 创建 DOM 结构
         const toolbar = document.createElement('div');
         toolbar.id = 'fc-toolbar';
 
@@ -596,23 +404,32 @@
         const exportBtn = document.createElement('div');
         exportBtn.className = 'fc-btn';
         exportBtn.id = 'fc-export-btn';
-        exportBtn.innerHTML = `
-            <span class="icon">📥</span>
-            <span>导出会话</span>
-        `;
+
+        const exportIcon = document.createElement('span');
+        exportIcon.className = 'icon';
+        exportIcon.textContent = '📥';
+        const exportText = document.createElement('span');
+        exportText.textContent = '导出会话';
+
+        exportBtn.appendChild(exportIcon);
+        exportBtn.appendChild(exportText);
         toolbar.appendChild(exportBtn);
 
         // 返回按钮
         const backBtn = document.createElement('a');
         backBtn.href = POOL_MANAGER_URL;
         backBtn.className = 'fc-btn';
-        backBtn.innerHTML = `
-            <span class="icon">🏠</span>
-            <span>Pool Manager</span>
-        `;
+
+        const backIcon = document.createElement('span');
+        backIcon.className = 'icon';
+        backIcon.textContent = '🏠';
+        const backText = document.createElement('span');
+        backText.textContent = 'Pool Manager';
+
+        backBtn.appendChild(backIcon);
+        backBtn.appendChild(backText);
         toolbar.appendChild(backBtn);
 
-        // 添加到页面
         document.body.appendChild(toolbar);
 
         // 绑定事件
@@ -641,7 +458,7 @@
             }
         });
 
-        console.log('[FuClaude Tools] 工具栏已加载');
+        console.log('[FuClaude Tools] Chrome 扩展工具栏已加载');
     }
 
     // ==================== 初始化 ====================
@@ -652,7 +469,7 @@
         window.addEventListener('load', () => setTimeout(createToolbar, 500));
     }
 
-    // 监听 DOM 变化
+    // 监听 DOM 变化，确保工具栏始终存在
     const observer = new MutationObserver(() => {
         if (!document.getElementById('fc-toolbar')) {
             createToolbar();
