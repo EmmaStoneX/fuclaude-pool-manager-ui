@@ -1,3 +1,15 @@
+/* Claude 风格主题 */
+/* 主题变量 */
+:root {
+    --fc-color-black-soft: #2A2B2A;
+    --fc-color-white-soft: #F8F7F2;
+    --fc-color-accent: #C96442;
+    /* Claude 橙褐色调 */
+    --fc-color-accent-hover: #E07A52;
+    --fc-border-radius: 16px;
+    --fc-border-radius-sm: 10px;
+}
+
 /* 主面板容器 */
 #fc-panel {
     position: fixed;
@@ -15,31 +27,31 @@
     transform: translateY(-50%) translateX(calc(100% - 32px));
 }
 
-/* 展开/收起箭头按钮 */
+/* 展开/收起箭头按钮 - 浅色模式 */
 .fc-toggle-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 64px;
-    background: #fff;
-    border: 1px solid #e5e5e5;
+    background: var(--fc-color-white-soft);
+    border: 1px solid #E4E1D7;
     border-right: none;
     border-radius: 12px 0 0 12px;
     cursor: pointer;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
 .fc-toggle-btn:hover {
-    background: #f5f5f5;
+    background: hsl(51, 24%, 92%);
 }
 
 .fc-toggle-btn svg {
     width: 16px;
     height: 16px;
-    color: #666;
+    color: #7C7A72;
     transition: transform 0.3s ease;
 }
 
@@ -47,12 +59,12 @@
     transform: rotate(180deg);
 }
 
-/* 主内容面板 */
+/* 主内容面板 - 浅色模式 */
 .fc-content-panel {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 16px 0 0 16px;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    background: var(--fc-color-white-soft);
+    border: 1px solid #E4E1D7;
+    border-radius: var(--fc-border-radius) 0 0 var(--fc-border-radius);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -60,16 +72,16 @@
     min-width: 140px;
 }
 
-/* 功能按钮通用样式 */
+/* 功能按钮通用样式 - Claude 橙褐色调 */
 .fc-action-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 12px 16px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, var(--fc-color-accent) 0%, #B85A3A 100%);
     border: none;
-    border-radius: 10px;
+    border-radius: var(--fc-border-radius-sm);
     color: #fff;
     font-size: 14px;
     font-weight: 500;
@@ -77,13 +89,13 @@
     transition: all 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 2px 10px rgba(201, 100, 66, 0.25);
 }
 
 .fc-action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    box-shadow: 0 4px 16px rgba(201, 100, 66, 0.35);
+    background: linear-gradient(135deg, var(--fc-color-accent-hover) 0%, var(--fc-color-accent) 100%);
 }
 
 .fc-action-btn:active {
@@ -101,16 +113,16 @@
     position: relative;
 }
 
-/* 导出下拉菜单 */
+/* 导出下拉菜单 - 浅色模式 */
 .fc-export-menu {
     position: absolute;
     right: 100%;
     top: 0;
     margin-right: 8px;
-    background: #fff;
-    border: 1px solid #e5e5e5;
+    background: var(--fc-color-white-soft);
+    border: 1px solid #E4E1D7;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     padding: 8px;
     display: none;
     flex-direction: column;
@@ -132,13 +144,13 @@
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 13px;
-    color: #333;
+    color: hsl(47, 15%, 25%);
     white-space: nowrap;
 }
 
 .fc-export-menu-item:hover {
-    background: #f0fdf4;
-    color: #059669;
+    background: hsl(40, 30%, 94%);
+    color: var(--fc-color-accent);
 }
 
 .fc-export-menu-item .icon {
@@ -149,22 +161,23 @@
 
 .fc-divider {
     height: 1px;
-    background: #e5e5e5;
+    background: #E4E1D7;
     margin: 4px 0;
 }
 
-/* Toast 提示 */
+/* Toast 提示 - Claude 风格 */
 #fc-toast {
     position: fixed;
     bottom: 100px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: var(--fc-color-black-soft);
+    color: var(--fc-color-white-soft);
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: var(--fc-border-radius-sm);
     font-size: 14px;
     z-index: 999999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     animation: fadeInOut 2s ease forwards;
 }
 
@@ -190,49 +203,65 @@
     }
 }
 
-/* 暗色模式 */
+/* 暗色模式 - Claude 深色主题 */
 @media (prefers-color-scheme: dark) {
+    :root {
+        --fc-color-accent: #D4836B;
+        --fc-color-accent-hover: #E8977F;
+    }
+
     .fc-toggle-btn {
-        background: #2d2d2d;
+        background: #303030;
         border-color: #404040;
+        box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
     }
 
     .fc-toggle-btn:hover {
-        background: #3d3d3d;
+        background: #3D3D3A;
     }
 
     .fc-toggle-btn svg {
-        color: #a0a0a0;
+        color: #9A9890;
     }
 
     .fc-content-panel {
-        background: #2d2d2d;
+        background: #2D2E2D;
         border-color: #404040;
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.25);
     }
 
     .fc-action-btn {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        background: linear-gradient(135deg, #C96442 0%, #A85535 100%);
+        box-shadow: 0 2px 10px rgba(201, 100, 66, 0.3);
     }
 
     .fc-action-btn:hover {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background: linear-gradient(135deg, #D4836B 0%, #C96442 100%);
+        box-shadow: 0 4px 16px rgba(201, 100, 66, 0.4);
     }
 
     .fc-export-menu {
-        background: #2d2d2d;
-        border-color: #404040;
+        background: #323332;
+        border-color: #4A4A48;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     }
 
     .fc-export-menu-item {
-        color: #e5e5e5;
+        color: hsl(50, 14%, 88%);
     }
 
     .fc-export-menu-item:hover {
-        background: #1a3a2a;
-        color: #34d399;
+        background: #3D3D3A;
+        color: #E8977F;
     }
 
     .fc-divider {
-        background: #404040;
+        background: #4A4A48;
+    }
+
+    #fc-toast {
+        background: #3D3D3A;
+        border: 1px solid #5E5D5940;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     }
 }
