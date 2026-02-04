@@ -12,18 +12,21 @@
         const match = window.location.pathname.match(/\/chat\/([a-f0-9-]+)/);
         return match ? match[1] : null;
     }
-
     // 从页面提取会话内容
     function extractConversationFromDOM(doc = document) {
         const messages = [];
 
-        // 策略1：尝试通过 data-testid 找到消息容器
-        // Claude 页面中，每条消息通常有一个包含 data-testid 的容器
-        let messageContainers = doc.querySelectorAll('[data-testid*="user-message"], [data-testid*="assistant-message"]');
+        // 策略1：精确匹配 data-testid（Claude 官网结构）
+        // 注意：使用精确匹配而不是包含匹配
+        let messageContainers = doc.querySelectorAll(
+            '[data-testid="user-message"], [data-testid="assistant-message"], ' +
+            '[data-testid="human-turn"], [data-testid="assistant-turn"]'
+        );
 
         if (messageContainers.length > 0) {
             messageContainers.forEach(container => {
-                const isHuman = container.getAttribute('data-testid')?.includes('user');
+                const testId = container.getAttribute('data-testid') || '';
+                const isHuman = testId.includes('user') || testId.includes('human');
                 const text = container.innerText?.trim();
                 if (text && text.length > 0) {
                     messages.push({
@@ -33,90 +36,67 @@
                     });
                 }
             });
-            return messages;
-        }
-
-        // 策略2：通过对话区域的直接子元素来识别消息边界
-        // 找到包含对话的主容器，然后遍历其直接子元素
-        const conversationContainer = doc.querySelector('[class*="conversation"], [class*="chat-container"], main, [role="main"]');
-
-        if (conversationContainer) {
-            // 尝试找到消息组（通常每条消息是一个独立的 div 块）
-            const potentialMessages = conversationContainer.querySelectorAll(':scope > div > div, :scope > div');
-
-            potentialMessages.forEach(el => {
-                // 检查是否包含用户消息或 Claude 回复的标识
-                const hasUserClass = el.querySelector('[class*="font-user-message"]') ||
-                    el.className?.includes('font-user-message') ||
-                    el.querySelector('[class*="user-message"]');
-                const hasClaudeClass = el.querySelector('[class*="font-claude-response"]') ||
-                    el.className?.includes('font-claude-response') ||
-                    el.querySelector('[class*="claude-response"]') ||
-                    el.querySelector('[class*="assistant"]');
-
-                if (hasUserClass || hasClaudeClass) {
-                    const text = el.innerText?.trim();
-                    if (text && text.length > 0) {
-                        messages.push({
-                            role: hasUserClass ? 'human' : 'assistant',
-                            content: text,
-                            html: el.innerHTML
-                        });
-                    }
-                }
-            });
-
             if (messages.length > 0) {
-                return deduplicateMessages(messages);
+                return messages;
             }
         }
 
-        // 策略3：回退到原始方法，但尝试找到最外层的消息容器
-        // 查找带有 font-user-message 或 font-claude-response 的元素，然后找到它们的消息容器祖先
-        const allTextElements = doc.querySelectorAll('[class*="font-user-message"], [class*="font-claude-response"]');
-        const processedContainers = new Set();
+        // 策略2：查找带有特定 class 的元素，然后向上找到消息行容器
+        // Claude 页面中，font-user-message 和 font-claude-response 通常在内部元素上
+        // 我们需要找到它们的公共父容器（消息行）
+        const userElements = Array.from(doc.querySelectorAll('[class*="font-user-message"]'));
+        const claudeElements = Array.from(doc.querySelectorAll('[class*="font-claude-response"]'));
 
-        allTextElements.forEach(el => {
-            // 向上查找消息容器（通常是包含完整消息的最近祖先）
-            let container = el;
-            let depth = 0;
-            const maxDepth = 10;
+        // 为每个用户元素找到消息行容器
+        const userContainers = findMessageContainers(userElements, 'human');
+        const claudeContainers = findMessageContainers(claudeElements, 'assistant');
 
-            // 向上遍历，找到一个合适的消息容器
-            // 消息容器通常有较大的高度，或者是特定的布局元素
-            while (container.parentElement && depth < maxDepth) {
-                const parent = container.parentElement;
+        // 合并并按 DOM 顺序排序
+        const allContainers = [...userContainers, ...claudeContainers];
 
-                // 检查是否到达了消息边界（通常是 flex 或 grid 布局的直接子元素）
-                const parentStyle = window.getComputedStyle ? window.getComputedStyle(parent) : {};
-                const isLayoutParent = parentStyle.display === 'flex' || parentStyle.display === 'grid';
-
-                // 如果父元素是布局容器，当前元素可能就是消息容器
-                if (isLayoutParent || parent.getAttribute('data-testid') ||
-                    parent.className?.includes('message') ||
-                    parent.className?.includes('conversation')) {
-                    break;
-                }
-
-                container = parent;
-                depth++;
+        // 按元素在 DOM 中的位置排序
+        allContainers.sort((a, b) => {
+            const posA = a.element.getBoundingClientRect().top;
+            const posB = b.element.getBoundingClientRect().top;
+            // 如果都是0（可能是隐藏元素），使用 DOM 顺序
+            if (posA === 0 && posB === 0) {
+                return a.element.compareDocumentPosition(b.element) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
             }
+            return posA - posB;
+        });
 
-            // 使用容器的唯一标识符避免重复处理
-            const containerKey = container.innerText?.substring(0, 100) || container.innerHTML?.substring(0, 100);
-            if (processedContainers.has(containerKey)) {
-                return;
+        // 去重：使用容器元素本身作为唯一标识
+        const seenElements = new Set();
+        allContainers.forEach(item => {
+            if (seenElements.has(item.element)) return;
+            seenElements.add(item.element);
+
+            const text = item.element.innerText?.trim();
+            if (text && text.length > 0) {
+                messages.push({
+                    role: item.role,
+                    content: text,
+                    html: item.element.innerHTML
+                });
             }
-            processedContainers.add(containerKey);
+        });
 
+        if (messages.length > 0) {
+            return deduplicateMessages(messages);
+        }
+
+        // 策略3：最简单的回退 - 直接使用原始元素，但进行内容去重
+        // 这是最后的手段，可能会有重复但至少能提取内容
+        const allElements = doc.querySelectorAll('[class*="font-user-message"], [class*="font-claude-response"]');
+
+        allElements.forEach(el => {
             const isHuman = el.className?.includes('font-user-message');
-            const text = container.innerText?.trim();
-
+            const text = el.innerText?.trim();
             if (text && text.length > 0) {
                 messages.push({
                     role: isHuman ? 'human' : 'assistant',
                     content: text,
-                    html: container.innerHTML
+                    html: el.innerHTML
                 });
             }
         });
@@ -124,36 +104,105 @@
         return deduplicateMessages(messages);
     }
 
-    // 消息去重函数
+    // 为元素找到消息容器（向上遍历找到消息行）
+    function findMessageContainers(elements, role) {
+        const containers = [];
+        const processedElements = new WeakSet();
+
+        elements.forEach(el => {
+            // 向上遍历找到消息容器
+            let container = el;
+            let current = el;
+
+            // 向上最多查找 15 层
+            for (let i = 0; i < 15 && current.parentElement; i++) {
+                const parent = current.parentElement;
+
+                // 检查是否到达消息容器边界的标志：
+                // 1. 有 data-testid 属性
+                // 2. 是 grid 或 flex 布局的直接子元素
+                // 3. 有特定的 class 名（如 message, turn 等）
+                const hasTestId = parent.hasAttribute('data-testid');
+                const hasMessageClass = parent.className?.match(/\b(message|turn|conversation-turn)\b/i);
+
+                if (hasTestId || hasMessageClass) {
+                    container = current;
+                    break;
+                }
+
+                // 检查父元素是否是flex/grid布局容器（消息列表通常用这种布局）
+                try {
+                    const style = window.getComputedStyle(parent);
+                    if ((style.display === 'flex' || style.display === 'grid') &&
+                        parent.children.length > 1) {
+                        // 当前元素可能就是消息容器
+                        container = current;
+                        break;
+                    }
+                } catch (e) {
+                    // getComputedStyle 可能失败，忽略
+                }
+
+                current = parent;
+            }
+
+            // 避免重复处理同一个容器
+            if (!processedElements.has(container)) {
+                processedElements.add(container);
+                containers.push({
+                    element: container,
+                    role: role
+                });
+            }
+        });
+
+        return containers;
+    }
+
+    // 消息去重函数 - 更智能的去重
     function deduplicateMessages(messages) {
+        if (messages.length === 0) return [];
+
         const result = [];
-        const seenContent = new Set();
 
         messages.forEach(msg => {
-            // 使用内容的前100个字符和角色作为去重键
-            const key = `${msg.role}:${msg.content.substring(0, 100)}`;
+            // 检查是否与已有消息重复或是子集
+            let dominated = false;
+            let dominatesExisting = -1;
 
-            // 检查是否是另一条消息的子集（被包含的情况）
-            let isSubset = false;
-            for (const existing of result) {
-                if (existing.role === msg.role) {
-                    // 如果当前消息是已有消息的子集，跳过
-                    if (existing.content.includes(msg.content)) {
-                        isSubset = true;
-                        break;
-                    }
-                    // 如果已有消息是当前消息的子集，替换
-                    if (msg.content.includes(existing.content)) {
-                        existing.content = msg.content;
-                        existing.html = msg.html;
-                        isSubset = true;
-                        break;
-                    }
+            for (let i = 0; i < result.length; i++) {
+                const existing = result[i];
+                if (existing.role !== msg.role) continue;
+
+                // 如果内容完全相同
+                if (existing.content === msg.content) {
+                    dominated = true;
+                    break;
+                }
+
+                // 如果当前消息是已有消息的子集
+                if (existing.content.includes(msg.content) &&
+                    msg.content.length < existing.content.length * 0.9) {
+                    dominated = true;
+                    break;
+                }
+
+                // 如果已有消息是当前消息的子集
+                if (msg.content.includes(existing.content) &&
+                    existing.content.length < msg.content.length * 0.9) {
+                    dominatesExisting = i;
+                    break;
                 }
             }
 
-            if (!isSubset && !seenContent.has(key)) {
-                seenContent.add(key);
+            if (dominatesExisting >= 0) {
+                // 用更长的消息替换
+                result[dominatesExisting] = {
+                    role: msg.role,
+                    content: msg.content,
+                    html: msg.html
+                };
+            } else if (!dominated) {
                 result.push({
                     role: msg.role,
                     content: msg.content,
