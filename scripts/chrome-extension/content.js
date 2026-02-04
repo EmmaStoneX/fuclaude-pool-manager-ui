@@ -14,87 +14,57 @@
     }
     // 从页面提取会话内容
     function extractConversationFromDOM(doc = document) {
-        // 按文档顺序获取所有消息元素
-        const allElements = doc.querySelectorAll('[class*="font-user-message"], [class*="font-claude-response"]');
-
-        if (allElements.length === 0) {
-            return [];
-        }
-
         const messages = [];
-        let currentRole = null;
-        let currentContents = [];
-        let currentHtmlParts = [];
 
-        // 按文档顺序遍历，根据角色变化来分割消息
-        allElements.forEach((el) => {
-            const isHuman = el.className?.includes('font-user-message');
-            const role = isHuman ? 'human' : 'assistant';
-            const text = el.innerText?.trim() || '';
-            const html = el.innerHTML || '';
+        // 正确的选择器（基于实际 DOM 结构）:
+        // - 用户消息: [data-testid="user-message"] 是完整的消息容器
+        // - Claude 回复: .font-claude-response 是完整的消息容器
+        const userMessages = doc.querySelectorAll('[data-testid="user-message"]');
+        const claudeMessages = doc.querySelectorAll('.font-claude-response');
 
-            // 如果角色变化了，保存之前的消息并开始新消息
-            if (currentRole !== null && currentRole !== role) {
-                // 保存之前的消息
-                const combinedContent = currentContents.join('\n\n');
-                const combinedHtml = currentHtmlParts.join('');
+        // 收集所有消息并记录在 DOM 中的位置
+        const allMessages = [];
 
-                if (combinedContent.length > 0) {
-                    messages.push({
-                        role: currentRole,
-                        content: combinedContent,
-                        html: combinedHtml
-                    });
-                }
-
-                // 重置
-                currentContents = [];
-                currentHtmlParts = [];
-            }
-
-            currentRole = role;
-
-            // 添加当前元素的内容（如果不为空且不重复）
-            if (text.length > 0) {
-                // 检查是否与已有内容重复（子集关系）
-                let dominated = false;
-                let dominatesIndex = -1;
-
-                for (let i = 0; i < currentContents.length; i++) {
-                    if (currentContents[i].includes(text)) {
-                        dominated = true;
-                        break;
-                    }
-                    if (text.includes(currentContents[i])) {
-                        dominatesIndex = i;
-                        break;
-                    }
-                }
-
-                if (dominatesIndex >= 0) {
-                    // 用更长的文本替换
-                    currentContents[dominatesIndex] = text;
-                    currentHtmlParts[dominatesIndex] = html;
-                } else if (!dominated) {
-                    currentContents.push(text);
-                    currentHtmlParts.push(html);
-                }
-            }
+        userMessages.forEach(el => {
+            allMessages.push({
+                element: el,
+                role: 'human',
+                content: el.innerText?.trim() || '',
+                html: el.innerHTML
+            });
         });
 
-        // 保存最后一条消息
-        if (currentRole !== null && currentContents.length > 0) {
-            const combinedContent = currentContents.join('\n\n');
-            const combinedHtml = currentHtmlParts.join('');
+        claudeMessages.forEach(el => {
+            allMessages.push({
+                element: el,
+                role: 'assistant',
+                content: el.innerText?.trim() || '',
+                html: el.innerHTML
+            });
+        });
 
-            if (combinedContent.length > 0) {
+        // 按 DOM 顺序排序（使用元素在文档中的位置）
+        allMessages.sort((a, b) => {
+            // 使用 compareDocumentPosition 来确定元素顺序
+            const position = a.element.compareDocumentPosition(b.element);
+            if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+                return -1; // a 在 b 前面
+            } else if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+                return 1; // a 在 b 后面
+            }
+            return 0;
+        });
+
+        // 构建最终消息列表
+        allMessages.forEach(msg => {
+            if (msg.content.length > 0) {
                 messages.push({
-                    role: currentRole,
-                    content: combinedContent,
-                    html: combinedHtml
+                    role: msg.role,
+                    content: msg.content,
+                    html: msg.html
                 });
             }
-        }
+        });
 
         return messages;
     }
