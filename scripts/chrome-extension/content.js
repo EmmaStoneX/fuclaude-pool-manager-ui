@@ -454,7 +454,7 @@
         }
         const title = getConversationTitle();
         const md = toMarkdown(messages, title);
-        downloadFile(md, `${title}.md`, 'text/markdown;charset=utf-8');
+        downloadFile(md, `${sanitizeFilename(title)}.md`, 'text/markdown;charset=utf-8');
         showToast('Markdown 导出成功！');
     }
 
@@ -503,7 +503,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title}.doc`;
+        a.download = `${sanitizeFilename(title)}.doc`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -528,7 +528,7 @@
             text += `${role}\n${msg.content}\n\n${'─'.repeat(40)}\n\n`;
         });
 
-        downloadFile(text, `${title}.txt`, 'text/plain;charset=utf-8');
+        downloadFile(text, `${sanitizeFilename(title)}.txt`, 'text/plain;charset=utf-8');
         showToast('文本导出成功！');
     }
 
@@ -551,7 +551,7 @@
             }))
         };
 
-        downloadFile(JSON.stringify(data, null, 2), `${title}.json`, 'application/json;charset=utf-8');
+        downloadFile(JSON.stringify(data, null, 2), `${sanitizeFilename(title)}.json`, 'application/json;charset=utf-8');
         showToast('JSON 导出成功！');
     }
     // ==================== 批量导出功能（完整版） ====================
