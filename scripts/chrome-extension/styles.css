@@ -203,6 +203,50 @@
     }
 }
 
+/* 进度提示 Toast */
+#fc-progress-toast {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: var(--fc-color-black-soft);
+    color: var(--fc-color-white-soft);
+    padding: 16px;
+    border-radius: var(--fc-border-radius-sm);
+    z-index: 999999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    min-width: 240px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fc-progress-bar-bg {
+    margin-top: 8px;
+    height: 4px;
+    background: #444;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.fc-progress-bar-fill {
+    height: 100%;
+    background: var(--fc-color-accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
 /* 暗色模式 - Claude 深色主题 */
 @media (prefers-color-scheme: dark) {
     :root {
@@ -263,5 +307,15 @@
         background: #3D3D3A;
         border: 1px solid #5E5D5940;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    #fc-progress-toast {
+        background: #3D3D3A;
+        border: 1px solid #5E5D5940;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .fc-progress-bar-bg {
+        background: #2A2B2A;
     }
 }
