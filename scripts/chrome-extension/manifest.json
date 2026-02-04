@@ -15,6 +15,7 @@
                 "https://claude.ai/*"
             ],
             "js": [
+                "jszip.min.js",
                 "content.js"
             ],
             "css": [

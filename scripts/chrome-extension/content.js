@@ -560,19 +560,14 @@
     let isExportingAll = false;
     let shouldCancelExport = false;
 
-    // 动态加载 JSZip 库
+    // JSZip 库已通过 manifest.json 预加载
     function loadJSZip() {
         return new Promise((resolve, reject) => {
             if (window.JSZip) {
                 resolve(window.JSZip);
-                return;
+            } else {
+                reject(new Error('JSZip 库未加载，请重新加载扩展'));
             }
-
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-            script.onload = () => resolve(window.JSZip);
-            script.onerror = () => reject(new Error('无法加载 JSZip 库'));
-            document.head.appendChild(script);
         });
     }
 
