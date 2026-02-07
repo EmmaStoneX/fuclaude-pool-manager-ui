@@ -1,4 +1,4 @@
-// FuClaude 增强工具 - Chrome Extension Content Script v2.4
+// FuClaude 增强工具 - Chrome Extension Content Script v2.6
 (function () {
     'use strict';
 
@@ -96,7 +96,16 @@
         // 递归处理节点
         function processNode(node, listDepth = 0) {
             if (node.nodeType === Node.TEXT_NODE) {
-                return node.textContent;
+                const text = node.textContent;
+
+                // 过滤纯域名文本（搜索结果中常见的独立域名文本）
+                // 匹配类似 "github.com", "docs.stripe.com" 等纯域名
+                const pureDomainPattern = /^\s*([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\s*$/;
+                if (pureDomainPattern.test(text)) {
+                    return '';
+                }
+
+                return text;
             }
 
             if (node.nodeType !== Node.ELEMENT_NODE) {
@@ -191,18 +200,69 @@
                     break;
                 }
 
-                // 链接
+                // 链接 - 改进搜索结果链接格式
                 case 'a': {
                     const href = node.getAttribute('href') || '';
-                    const text = node.textContent.trim();
-                    result = `[${text}](${href})`;
+                    let text = node.textContent.trim();
+
+                    // 如果链接文本为空，跳过
+                    if (!text) {
+                        result = '';
+                        break;
+                    }
+
+                    // 清理文本末尾可能粘连的域名
+                    const domainPattern = /([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+                    const cleanedText = text.replace(domainPattern, '').trim();
+
+                    // 如果清理后的文本不为空，使用清理后的文本
+                    let displayText = cleanedText || text;
+
+                    // 判断是否是外部链接
+                    const isExternalLink = href && (href.startsWith('http://') || href.startsWith('https://'));
+
+                    if (href) {
+                        if (isExternalLink) {
+                            // 如果清理后文本为空，从URL提取显示文本
+                            if (!cleanedText) {
+                                try {
+                                    const url = new URL(href);
+                                    displayText = url.hostname + url.pathname;
+                                } catch {
+                                    displayText = text;
+                                }
+                            }
+                            // 外部链接：格式化为列表项，每个链接独占一行，保留完整URL
+                            result = `\n- [${displayText}](${href})`;
+                        } else {
+                            // 内部链接：保持原有的内联格式
+                            result = `[${displayText}](${href})`;
+                        }
+                    } else {
+                        // 没有href的链接（可能是搜索结果）：输出为独占一行的文本
+                        result = `\n- ${displayText}`;
+                    }
                     break;
                 }
 
-                // 图片
+                // 图片 - 过滤favicon图片
                 case 'img': {
                     const src = node.getAttribute('src') || '';
                     const alt = node.getAttribute('alt') || 'image';
+
+                    // 过滤favicon图片（这些图片通常来自搜索结果）
+                    const isFavicon =
+                        alt.toLowerCase() === 'favicon' ||
+                        src.includes('/s2/favicons') ||
+                        src.includes('/favicon') ||
+                        (src.includes('_next/image?url=') && src.includes('favicons'));
+
+                    if (isFavicon) {
+                        // 跳过favicon图片
+                        result = '';
+                        break;
+                    }
+
                     result = `![${alt}](${src})`;
                     break;
                 }
@@ -279,6 +339,47 @@
 
                 // div, span 及其他容器 - 递归处理子节点
                 default: {
+                    // 特殊处理：Claude搜索结果卡片
+                    // 识别特征：div包含cursor-pointer类和img[alt="favicon"]
+                    if (tagName === 'div') {
+                        const className = node.className || '';
+                        const hasFavicon = node.querySelector('img[alt="favicon"]');
+                        const isCursorPointer = className.includes('cursor-pointer');
+
+                        // 这是一个搜索结果卡片
+                        if (hasFavicon && isCursorPointer) {
+                            // 提取标题（在.truncate类的div中）
+                            const titleEl = node.querySelector('.truncate');
+                            const title = titleEl ? titleEl.textContent.trim() : '';
+
+                            // 提取域名（在text-text-400类的div中）
+                            const domainEl = node.querySelector('.text-text-400, [class*="text-text-400"]');
+                            let domain = domainEl ? domainEl.textContent.trim() : '';
+
+                            // 如果没找到域名，尝试从favicon URL中提取
+                            if (!domain && hasFavicon) {
+                                const faviconSrc = hasFavicon.getAttribute('src') || '';
+                                const domainMatch = faviconSrc.match(/domain[=|%3D]([^&%]+)/i);
+                                if (domainMatch) {
+                                    domain = decodeURIComponent(domainMatch[1]);
+                                }
+                            }
+
+                            if (title) {
+                                if (domain) {
+                                    // 构造一个基础链接（至少可以跳转到域名首页）
+                                    const url = `https://${domain}/`;
+                                    result = `\n- [${title}](${url})`;
+                                } else {
+                                    // 没有域名信息，只输出标题
+                                    result = `\n- ${title}`;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    // 默认处理：递归处理子节点
                     result = Array.from(node.childNodes).map(n => processNode(n, listDepth)).join('');
                     break;
                 }
