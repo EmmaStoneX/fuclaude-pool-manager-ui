@@ -1,12 +1,93 @@
-import React from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useLinuxDoAuth } from '../contexts/LinuxDoAuthContext';
-import LoadingIndicator from '../components/LoadingIndicator';
-
-/**
+import { WorkerUrlContext } from '../contexts/WorkerUrlContext';
+import { ToastContext } from '../contexts/ToastContext';
+import LoadingIndicator from '../components/LoadingIndicator';/**
  * 登录页面 - 简洁极简风格设计
  */
 const LoginPage: React.FC = () => {
-  const { login, loginWithGitHub, isLoading, error } = useLinuxDoAuth();
+  const { login, loginWithGitHub, isLoading: authLoading, error } = useLinuxDoAuth();
+  const { workerUrl } = useContext(WorkerUrlContext) || {};
+  const toastCtx = useContext(ToastContext);
+
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  // 倒计时逻辑
+  useEffect(() => {
+    let timer: number;
+    if (countdown > 0) {
+      timer = window.setInterval(() => setCountdown(c => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendCode = async () => {
+    if (!email || !email.includes('@')) {
+      toastCtx?.showToast('请输入有效的邮箱地址', 'error');
+      return;
+    }
+    if (!workerUrl) {
+      toastCtx?.showToast('无法连接服务端，未配置 Worker URL。', 'error');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const res = await fetch(`${workerUrl}/api/auth/email/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || '发送验证码失败');
+      }
+      toastCtx?.showToast('验证码发送成功，请查收', 'success');
+      setCountdown(60);
+    } catch (err: any) {
+      toastCtx?.showToast(err.message, 'error');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !code) {
+      toastCtx?.showToast('邮箱和验证码不能为空', 'error');
+      return;
+    }
+    if (!workerUrl) return;
+
+    setIsLoggingIn(true);
+    try {
+      const res = await fetch(`${workerUrl}/api/auth/email/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || '登录失败');
+      }
+      toastCtx?.showToast('登录成功', 'success');
+      if (data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        window.location.reload();
+      }
+    } catch (err: any) {
+      toastCtx?.showToast(err.message, 'error');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const isLoading = authLoading || isLoggingIn;
 
   if (isLoading) {
     return (
@@ -27,6 +108,47 @@ const LoginPage: React.FC = () => {
             {error}
           </div>
         )}
+
+        {/* 邮箱验证码登录表单 */}
+        <form className="email-login-form" onSubmit={handleEmailLogin}>
+          <div className="form-group">
+            <input
+              type="email"
+              placeholder="YOUR@EMAIL.COM"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="email-input uppercase-placeholder"
+              required
+            />
+          </div>
+          <div className="form-group code-group">
+            <input
+              type="text"
+              placeholder="6 位验证码"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              className="code-input"
+              maxLength={6}
+              required
+            />
+            <button
+              type="button"
+              className="send-code-btn"
+              onClick={handleSendCode}
+              disabled={isSending || countdown > 0 || !email}
+            >
+              {isSending ? '发送中' : countdown > 0 ? `${countdown}s 后重发` : '获取验证码'}
+            </button>
+          </div>
+          <button type="submit" className="login-button email-submit-btn" disabled={isLoading || !email || !code}>
+            邮箱一键登录
+          </button>
+        </form>
+
+        {/* 分隔线 */}
+        <div className="divider">
+          <span>OR SIGN IN WITH</span>
+        </div>
 
         <div className="login-buttons">
           {/* LinuxDO 登录按钮 */}
@@ -137,6 +259,79 @@ const LoginPage: React.FC = () => {
 
         .login-button:active {
           transform: scale(0.98);
+        }
+
+        .email-login-form {
+          margin-bottom: 24px;
+        }
+
+        .form-group {
+          margin-bottom: 12px;
+        }
+
+        .form-group.code-group {
+          display: flex;
+          gap: 8px;
+        }
+
+        .email-input, .code-input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1px solid #d0d0d0;
+          border-radius: 6px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        
+        .uppercase-placeholder::placeholder {
+           text-transform: uppercase;
+           letter-spacing: 1px;
+           font-size: 12px;
+        }
+
+        .email-input:focus, .code-input:focus {
+          border-color: #1a1a1a;
+        }
+
+        .code-input {
+          flex: 1;
+        }
+
+        .send-code-btn {
+          padding: 0 16px;
+          background: #f5f5f5;
+          border: 1px solid #d0d0d0;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #333;
+          cursor: pointer;
+          white-space: nowrap;
+          min-width: 100px;
+          transition: all 0.2s;
+        }
+
+        .send-code-btn:hover:not(:disabled) {
+          background: #e0e0e0;
+        }
+
+        .send-code-btn:disabled {
+          color: #aaa;
+          cursor: not-allowed;
+          background: #fafafa;
+        }
+
+        .email-submit-btn {
+          margin-top: 8px;
+          background: #1a1a1a;
+          color: white;
+          border-color: #1a1a1a;
+        }
+        
+        .email-submit-btn:hover {
+          background: #333;
+          color: white;
         }
 
         .login-button:disabled {
