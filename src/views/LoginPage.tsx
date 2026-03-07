@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-card">
         <h1 className="login-title">LOGIN</h1>
-        <p className="login-subtitle">Access FuClaude Pool</p>
+        <p className="login-subtitle">访问 AI 镜像站</p>
 
         {error && (
           <div className="error-message" role="alert">
