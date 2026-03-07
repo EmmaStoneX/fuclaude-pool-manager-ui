@@ -4,6 +4,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LinuxDoAuthProvider, useLinuxDoAuth } from './contexts/LinuxDoAuthContext';
 import UserView from './views/UserView';
+import GrokView from './views/GrokView';
 import AdminView from './views/AdminView';
 import LoginPage from './views/LoginPage';
 import ConfigPanel from './components/ConfigPanel';
@@ -11,6 +12,7 @@ import LoadingIndicator from './components/LoadingIndicator';
 
 const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<'user' | 'admin'>('user');
+  const [activeTab, setActiveTab] = useState<'claude' | 'grok'>('claude');
   const [showConfigPanel, setShowConfigPanel] = useState<boolean>(false);
   const workerUrlCtx = useContext(WorkerUrlContext);
   const { user, isAuthenticated, isLoading: authLoading, logout } = useLinuxDoAuth();
@@ -183,7 +185,31 @@ const AppContent: React.FC = () => {
 
       {currentView === 'admin' && showConfigPanel && <ConfigPanel onClose={() => setShowConfigPanel(false)} />}
 
-      {currentView === 'user' ? <UserView /> : <AdminView onToggleConfig={() => setShowConfigPanel(!showConfigPanel)} showConfigPanel={showConfigPanel} />}
+      {currentView === 'user' && (
+        <>
+          <div className="service-tabs">
+            <button
+              className={activeTab === 'claude' ? 'active' : ''}
+              onClick={() => setActiveTab('claude')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Claude
+            </button>
+            <button
+              className={activeTab === 'grok' ? 'active' : ''}
+              onClick={() => setActiveTab('grok')}
+            >
+              <span className="grok-tab-icon">✦</span>
+              Grok
+            </button>
+          </div>
+          {activeTab === 'claude' ? <UserView /> : <GrokView />}
+        </>
+      )}
+
+      {currentView === 'admin' && <AdminView onToggleConfig={() => setShowConfigPanel(!showConfigPanel)} showConfigPanel={showConfigPanel} />}
 
       <footer className="main-footer">
         <a href="https://github.com/EmmaStoneX/fuclaude-pool-manager-ui" target="_blank" rel="noopener noreferrer" aria-label="Frontend Source Code">

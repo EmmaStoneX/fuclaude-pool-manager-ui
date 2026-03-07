@@ -711,6 +711,158 @@ tr:hover {
     }
 }
 
+/* ===== Service Tabs (Claude / Grok) ===== */
+.service-tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-l);
+    border-bottom: 2px solid var(--color-neutral-stroke-1);
+    padding-bottom: 0;
+}
+
+.service-tabs button {
+    background: transparent;
+    color: var(--color-neutral-foreground-2);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-large);
+    padding: var(--spacing-m) var(--spacing-xl);
+    border-radius: var(--radius-medium) var(--radius-medium) 0 0;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all var(--transition-fast);
+    gap: var(--spacing-s);
+}
+
+.service-tabs button:hover {
+    background: rgba(0, 120, 212, 0.06);
+    color: var(--color-brand-primary);
+    box-shadow: none;
+}
+
+.service-tabs button.active {
+    color: var(--color-brand-primary);
+    border-bottom-color: var(--color-brand-primary);
+    background: transparent;
+}
+
+.grok-tab-icon {
+    font-size: 16px;
+}
+
+/* ===== Grok View ===== */
+.grok-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.grok-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-s);
+}
+
+.grok-brand-icon {
+    font-size: 24px;
+    color: #F97316;
+}
+
+.grok-subtitle {
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-foreground-3);
+    margin-top: var(--spacing-xs);
+}
+
+.grok-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-m);
+    margin-bottom: var(--spacing-xl);
+}
+
+.grok-slot-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-s);
+    padding: var(--spacing-xl) var(--spacing-l);
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    border-radius: var(--radius-large);
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.grok-slot-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius-large);
+    padding: 1px;
+    background: linear-gradient(135deg, transparent, #F97316, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.grok-slot-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.2), 0 0 0 1px rgba(249, 115, 22, 0.3);
+    background: linear-gradient(145deg, #1f1f3a, #1b2845);
+}
+
+.grok-slot-card:hover::before {
+    opacity: 0.8;
+}
+
+.grok-slot-card:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+.grok-slot-icon {
+    color: #F97316;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(249, 115, 22, 0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.grok-slot-card:hover .grok-slot-icon {
+    background: rgba(249, 115, 22, 0.2);
+    transform: scale(1.1);
+}
+
+.grok-slot-number {
+    font-size: var(--font-size-large);
+    font-weight: var(--font-weight-semibold);
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.grok-slot-hint {
+    font-size: var(--font-size-small);
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.2s ease;
+}
+
+.grok-slot-card:hover .grok-slot-hint {
+    color: #F97316;
+}
+
+.grok-info-section {
+    margin-top: var(--spacing-s);
+}
+
 /* ===== Checkbox Styling ===== */
 input[type="checkbox"] {
     width: 18px;
