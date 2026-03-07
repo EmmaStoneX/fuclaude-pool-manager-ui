@@ -57,6 +57,23 @@ const GrokView: React.FC = () => {
         <main className="view-section" aria-labelledby="grok-view-title">
             <h2 id="grok-view-title">Grok 镜像站</h2>
             <h3>选择车位登录:</h3>
+            <div className="status-legend" style={{
+                display: 'flex',
+                gap: '16px',
+                marginBottom: '12px',
+                fontSize: '12px',
+                color: '#666',
+                flexWrap: 'wrap'
+            }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                    空闲
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }}></span>
+                    使用中
+                </span>
+            </div>
 
             <div className="grok-slot-grid">
                 {slots.map((num) => (
