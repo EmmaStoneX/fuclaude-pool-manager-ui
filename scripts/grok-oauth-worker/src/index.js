@@ -25,6 +25,11 @@ export default {
             return handleOAuth(request, env);
         }
 
+        // 登录中转页：接收 token 参数，自动 POST 表单到 Grok 镜像站
+        if (request.method === 'GET' && url.pathname === '/login') {
+            return handleLoginRedirect(url, env);
+        }
+
         // 健康检查
         if (url.pathname === '/health') {
             return jsonResponse({ status: 'ok', service: 'grok-oauth-worker' });
@@ -33,6 +38,73 @@ export default {
         return jsonResponse({ error: 'Not Found' }, 404);
     },
 };
+
+const GROK_BASE_URL = 'https://grok.zxvmax.com';
+
+/**
+ * 登录中转页
+ * 前端通过 window.open 跳转到 /login?token=xxx
+ * 此页面在浏览器端构建表单 POST 到 Grok 的 /sign-in
+ */
+function handleLoginRedirect(url, env) {
+    const token = url.searchParams.get('token') || '';
+
+    if (!token) {
+        return new Response('Missing token parameter', { status: 400 });
+    }
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>正在登录 Grok...</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .loading {
+      text-align: center;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(249, 115, 22, 0.2);
+      border-top: 3px solid #F97316;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>正在登录 Grok 镜像站...</p>
+  </div>
+  <form id="loginForm" method="POST" action="${GROK_BASE_URL}/sign-in" style="display:none;">
+    <input type="hidden" name="usertoken" value="${token}" />
+    <input type="hidden" name="action" value="default" />
+  </form>
+  <script>
+    document.getElementById('loginForm').submit();
+  </script>
+</body>
+</html>`;
+
+    return new Response(html, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
+}
 
 /**
  * 处理 OAuth 认证请求

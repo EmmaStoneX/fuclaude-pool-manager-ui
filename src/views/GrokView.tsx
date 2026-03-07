@@ -1,21 +1,16 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import GrokSlotCard from '../components/GrokSlotCard';
 import { generateRandomId } from '../utils/randomId';
 
-const GROK_BASE_URL = 'https://grok.zxvmax.com';
+const GROK_OAUTH_WORKER = 'https://grok-oauth-worker.clint-schneider.workers.dev';
 const TOTAL_SLOTS = 15;
 
 const GrokView: React.FC = () => {
-    const formRef = useRef<HTMLFormElement>(null);
-    const tokenInputRef = useRef<HTMLInputElement>(null);
 
     const handleSlotClick = (slotNumber: number) => {
         const userToken = generateRandomId(`grok_s${slotNumber}_`);
-
-        if (tokenInputRef.current && formRef.current) {
-            tokenInputRef.current.value = userToken;
-            formRef.current.submit();
-        }
+        // 跳转到 CF Worker 中转页，中转页会自动 POST 到 Grok 镜像站完成登录
+        window.open(`${GROK_OAUTH_WORKER}/login?token=${encodeURIComponent(userToken)}`, '_blank');
     };
 
     const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => i + 1);
@@ -41,18 +36,6 @@ const GrokView: React.FC = () => {
                     />
                 ))}
             </div>
-
-            {/* 隐藏表单：通过 POST 自动登录 Grok 镜像站 */}
-            <form
-                ref={formRef}
-                method="POST"
-                action={`${GROK_BASE_URL}/sign-in`}
-                target="_blank"
-                style={{ display: 'none' }}
-            >
-                <input ref={tokenInputRef} type="hidden" name="usertoken" value="" />
-                <input type="hidden" name="action" value="default" />
-            </form>
 
             <div className="grok-info-section">
                 <div className="info-message">
