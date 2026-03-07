@@ -88,7 +88,7 @@ export type AdminBatchApiResponse = AdminApiResponse & {
 };
 
 // Auth Provider Type
-export type AuthProvider = 'linuxdo' | 'github';
+export type AuthProvider = 'linuxdo' | 'github' | 'email';
 
 // Unified User Management Types (supports LinuxDO and GitHub)
 export interface LinuxDoUserInfo {
@@ -110,6 +110,7 @@ export interface AdminUsersResponse {
   banned_count: number;
   linuxdo_count?: number;
   github_count?: number;
+  email_count?: number;
 }
 
 export type AdminBanPayload = {
