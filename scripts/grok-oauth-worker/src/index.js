@@ -1,59 +1,153 @@
 /**
  * Grok OAuth Worker
  * 
- * 作为 Grok 镜像站的 OAUTH_URL 端点。
- * 当用户使用 userToken 登录时，Grok 会 POST userToken 到此端点进行验证。
- * 返回 { code: 1 } 表示允许登录。
+ * 功能：
+ * 1. POST /oauth — Grok 镜像站的 OAUTH_URL 端点，验证 userToken
+ * 2. GET /login?token=xxx — 登录中转页，自动 POST 到 Grok 的 /sign-in
+ * 3. GET /slots/status — 返回所有车位的实时状态（available/busy）
+ * 4. GET /health — 健康检查
  * 
- * 在 Grok 的 docker-compose.yml 中配置：
- *   OAUTH_URL: "https://your-worker.your-domain.workers.dev/oauth"
+ * KV 存储：SLOT_STATUS 命名空间，key 格式 slot:{N}，value 为 userToken，30分钟 TTL
  */
 
+const GROK_BASE_URL = 'https://grok.zxvmax.com';
+const TOTAL_SLOTS = 15;
+const SLOT_TTL_SECONDS = 30 * 60; // 30 分钟后自动释放
+
 export default {
-    async fetch(request, env) {
-        // CORS 预检
-        if (request.method === 'OPTIONS') {
-            return new Response(null, {
-                headers: corsHeaders(),
-            });
-        }
+  async fetch(request, env) {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders() });
+    }
 
-        const url = new URL(request.url);
+    const url = new URL(request.url);
 
-        // 只处理 POST /oauth
-        if (request.method === 'POST' && url.pathname === '/oauth') {
-            return handleOAuth(request, env);
-        }
+    // OAuth 认证端点
+    if (request.method === 'POST' && url.pathname === '/oauth') {
+      return handleOAuth(request, env);
+    }
 
-        // 登录中转页：接收 token 参数，自动 POST 表单到 Grok 镜像站
-        if (request.method === 'GET' && url.pathname === '/login') {
-            return handleLoginRedirect(url, env);
-        }
+    // 登录中转页
+    if (request.method === 'GET' && url.pathname === '/login') {
+      return handleLoginRedirect(url, env);
+    }
 
-        // 健康检查
-        if (url.pathname === '/health') {
-            return jsonResponse({ status: 'ok', service: 'grok-oauth-worker' });
-        }
+    // 车位状态查询
+    if (request.method === 'GET' && url.pathname === '/slots/status') {
+      return handleSlotsStatus(env);
+    }
 
-        return jsonResponse({ error: 'Not Found' }, 404);
-    },
+    // 健康检查
+    if (url.pathname === '/health') {
+      return jsonResponse({ status: 'ok', service: 'grok-oauth-worker' });
+    }
+
+    return jsonResponse({ error: 'Not Found' }, 404);
+  },
 };
 
-const GROK_BASE_URL = 'https://grok.zxvmax.com';
+/**
+ * 从 userToken 中提取车位号
+ * 格式：grok_s{N}_xxxxx → 返回 N
+ */
+function extractSlotNumber(userToken) {
+  const match = userToken.match(/^grok_s(\d+)_/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+/**
+ * 标记车位为 busy（写入 KV，带 TTL 自动过期）
+ */
+async function markSlotBusy(env, slotNumber, userToken) {
+  if (!env.SLOT_STATUS) return;
+  await env.SLOT_STATUS.put(`slot:${slotNumber}`, JSON.stringify({
+    userToken,
+    timestamp: Date.now(),
+  }), { expirationTtl: SLOT_TTL_SECONDS });
+}
+
+/**
+ * 查询所有车位状态
+ */
+async function handleSlotsStatus(env) {
+  const statuses = [];
+  for (let i = 1; i <= TOTAL_SLOTS; i++) {
+    const value = env.SLOT_STATUS ? await env.SLOT_STATUS.get(`slot:${i}`) : null;
+    statuses.push({
+      slot: i,
+      status: value ? 'busy' : 'available',
+    });
+  }
+  return jsonResponse({ slots: statuses });
+}
+
+/**
+ * OAuth 认证端点
+ * Grok 镜像站会 POST userToken 到此端点
+ * 同时从 token 中提取车位号并标记为 busy
+ */
+async function handleOAuth(request, env) {
+  try {
+    let userToken = '';
+    const contentType = request.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      userToken = body.userToken || body.usertoken || body.user_token || '';
+    } else if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData();
+      userToken = formData.get('userToken') || formData.get('usertoken') || formData.get('user_token') || '';
+    } else {
+      try {
+        const body = await request.json();
+        userToken = body.userToken || body.usertoken || body.user_token || '';
+      } catch {
+        return jsonResponse({ code: 0, msg: '无法解析请求体' }, 400);
+      }
+    }
+
+    if (!userToken || userToken.trim().length === 0) {
+      return jsonResponse({ code: 0, msg: 'userToken 不能为空' });
+    }
+
+    // 可选：密钥前缀校验
+    const authPrefix = env.AUTH_PREFIX || '';
+    if (authPrefix && !userToken.startsWith(authPrefix)) {
+      return jsonResponse({ code: 0, msg: '无效的 userToken' });
+    }
+
+    // 提取车位号并标记为 busy
+    const slotNumber = extractSlotNumber(userToken);
+    if (slotNumber && slotNumber >= 1 && slotNumber <= TOTAL_SLOTS) {
+      await markSlotBusy(env, slotNumber, userToken);
+    }
+
+    // 计算过期时间（1年后）
+    const expireDate = new Date();
+    expireDate.setFullYear(expireDate.getFullYear() + 1);
+    const expireTime = expireDate.toISOString().replace('T', ' ').slice(0, 19);
+
+    return jsonResponse({
+      code: 1,
+      msg: '登录成功',
+      isPro: false,
+      expireTime: expireTime,
+    });
+  } catch (err) {
+    return jsonResponse({ code: 0, msg: '服务器内部错误: ' + err.message }, 500);
+  }
+}
 
 /**
  * 登录中转页
- * 前端通过 window.open 跳转到 /login?token=xxx
- * 此页面在浏览器端构建表单 POST 到 Grok 的 /sign-in
  */
 function handleLoginRedirect(url, env) {
-    const token = url.searchParams.get('token') || '';
+  const token = url.searchParams.get('token') || '';
+  if (!token) {
+    return new Response('Missing token parameter', { status: 400 });
+  }
 
-    if (!token) {
-        return new Response('Missing token parameter', { status: 400 });
-    }
-
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -129,77 +223,25 @@ function handleLoginRedirect(url, env) {
 </body>
 </html>`;
 
-    return new Response(html, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    });
-}
-
-/**
- * 处理 OAuth 认证请求
- * Grok 镜像站会 POST { userToken: "xxx" } 到此端点
- */
-async function handleOAuth(request, env) {
-    try {
-        let userToken = '';
-
-        const contentType = request.headers.get('content-type') || '';
-
-        if (contentType.includes('application/json')) {
-            const body = await request.json();
-            userToken = body.userToken || body.usertoken || body.user_token || '';
-        } else if (contentType.includes('application/x-www-form-urlencoded')) {
-            const formData = await request.formData();
-            userToken = formData.get('userToken') || formData.get('usertoken') || formData.get('user_token') || '';
-        } else {
-            // 尝试作为 JSON 解析
-            try {
-                const body = await request.json();
-                userToken = body.userToken || body.usertoken || body.user_token || '';
-            } catch {
-                return jsonResponse({ code: 0, msg: '无法解析请求体' }, 400);
-            }
-        }
-
-        if (!userToken || userToken.trim().length === 0) {
-            return jsonResponse({ code: 0, msg: 'userToken 不能为空' });
-        }
-
-        // 可选：密钥前缀校验
-        const authPrefix = env.AUTH_PREFIX || '';
-        if (authPrefix && !userToken.startsWith(authPrefix)) {
-            return jsonResponse({ code: 0, msg: '无效的 userToken' });
-        }
-
-        // 计算过期时间（1年后）
-        const expireDate = new Date();
-        expireDate.setFullYear(expireDate.getFullYear() + 1);
-        const expireTime = expireDate.toISOString().replace('T', ' ').slice(0, 19);
-
-        return jsonResponse({
-            code: 1,
-            msg: '登录成功',
-            isPro: false,
-            expireTime: expireTime,
-        });
-    } catch (err) {
-        return jsonResponse({ code: 0, msg: '服务器内部错误: ' + err.message }, 500);
-    }
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
 }
 
 function corsHeaders() {
-    return {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-    };
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
 }
 
 function jsonResponse(data, status = 200) {
-    return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders(),
-        },
-    });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...corsHeaders(),
+    },
+  });
 }

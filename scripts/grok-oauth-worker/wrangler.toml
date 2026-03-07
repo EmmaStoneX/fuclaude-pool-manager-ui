@@ -6,3 +6,7 @@ compatibility_date = "2024-12-01"
 # 可选：设置一个密钥前缀，只有包含此前缀的 userToken 才允许登录
 # 留空则允许所有 userToken 登录
 AUTH_PREFIX = ""
+
+[[kv_namespaces]]
+binding = "SLOT_STATUS"
+id = "604d1fecb7a74582af752f3aa9846043"
