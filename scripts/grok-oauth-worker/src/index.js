@@ -118,15 +118,15 @@ async function handleOAuth(request, env) {
 
         if (contentType.includes('application/json')) {
             const body = await request.json();
-            userToken = body.userToken || '';
+            userToken = body.userToken || body.usertoken || body.user_token || '';
         } else if (contentType.includes('application/x-www-form-urlencoded')) {
             const formData = await request.formData();
-            userToken = formData.get('userToken') || '';
+            userToken = formData.get('userToken') || formData.get('usertoken') || formData.get('user_token') || '';
         } else {
             // 尝试作为 JSON 解析
             try {
                 const body = await request.json();
-                userToken = body.userToken || '';
+                userToken = body.userToken || body.usertoken || body.user_token || '';
             } catch {
                 return jsonResponse({ code: 0, msg: '无法解析请求体' }, 400);
             }
