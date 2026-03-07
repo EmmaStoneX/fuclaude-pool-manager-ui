@@ -62,17 +62,7 @@ const GrokSlotCard: React.FC<GrokSlotCardProps> = ({ slotNumber, status, onClick
                 车位 {slotNumber}
             </span>
 
-            {/* Status badge */}
-            <span
-                style={{
-                    marginLeft: 'auto',
-                    fontSize: '12px',
-                    color: indicator.color,
-                    fontWeight: 600,
-                }}
-            >
-                {indicator.label}
-            </span>
+
         </div>
     );
 };
