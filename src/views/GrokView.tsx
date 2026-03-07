@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import GrokSlotCard from '../components/GrokSlotCard';
+import Modal from '../components/Modal';
 import { generateRandomId } from '../utils/randomId';
-
 const GROK_OAUTH_WORKER = 'https://grok-oauth-worker.clint-schneider.workers.dev';
 const TOTAL_SLOTS = 15;
 const POLL_INTERVAL = 15_000; // 15秒轮询一次
@@ -39,17 +39,34 @@ const GrokView: React.FC = () => {
         return () => clearInterval(timer);
     }, [fetchSlotStatuses]);
 
-    const handleSlotClick = useCallback((slotNumber: number) => {
-        const userToken = generateRandomId(`grok_s${slotNumber}_`);
-        window.open(`${GROK_OAUTH_WORKER}/login?token=${encodeURIComponent(userToken)}`, '_blank');
+    const [showModal, setShowModal] = useState(false);
+    const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+    const [uniqueName, setUniqueName] = useState('');
 
-        // 立即标记为 busy（乐观更新，不等轮询）
-        setSlotStatuses(prev => {
-            const next = [...prev];
-            next[slotNumber - 1] = 'busy';
-            return next;
-        });
-    }, []);
+    const openModal = useCallback((slotNumber: number) => {
+        setSelectedSlot(slotNumber);
+        if (!uniqueName.trim()) {
+            setUniqueName(generateRandomId('rand_'));
+        }
+        setShowModal(true);
+    }, [uniqueName]);
+
+    const handleConfirmLogin = useCallback(() => {
+        if (selectedSlot !== null && uniqueName.trim()) {
+            window.open(`${GROK_OAUTH_WORKER}/login?token=${encodeURIComponent(uniqueName)}&slot=${selectedSlot}`, '_blank');
+
+            // 立即标记为 busy（乐观更新，不等轮询）
+            setSlotStatuses(prev => {
+                const next = [...prev];
+                next[selectedSlot - 1] = 'busy';
+                return next;
+            });
+
+            setShowModal(false);
+        } else if (!uniqueName.trim()) {
+            alert('请输入有效的隔离标识。');
+        }
+    }, [selectedSlot, uniqueName]);
 
     const slots = Array.from({ length: TOTAL_SLOTS }, (_, i) => i + 1);
 
@@ -60,8 +77,8 @@ const GrokView: React.FC = () => {
             return;
         }
         const randomSlot = availableSlots[Math.floor(Math.random() * availableSlots.length)];
-        handleSlotClick(randomSlot);
-    }, [slotStatuses, handleSlotClick]);
+        openModal(randomSlot);
+    }, [slotStatuses, openModal]);
 
     return (
         <main className="view-section" aria-labelledby="grok-view-title">
@@ -102,16 +119,46 @@ const GrokView: React.FC = () => {
                         key={num}
                         slotNumber={num}
                         status={slotStatuses[num - 1]}
-                        onClick={() => handleSlotClick(num)}
+                        onClick={() => openModal(num)}
                     />
                 ))}
             </div>
 
             <div className="grok-info-section">
                 <div className="info-message">
-                    <strong>💡 使用说明：</strong>点击任意车位，系统会自动生成唯一的 UserToken 并在新标签页中登录 Grok 镜像站。车位会自动标记为使用中，30分钟后自动释放。
+                    <strong>💡 使用说明：</strong>点击任意车位，系统会提示您输入或生成一个唯一的 UserToken，凭此标识可在新标签页中登录及恢复 Grok 会话。车位会自动标记为使用中，30分钟后自动释放。
                 </div>
             </div>
+
+            <Modal
+                isOpen={showModal}
+                onClose={() => { setShowModal(false); setUniqueName(''); }}
+                title="输入会话隔离标识"
+            >
+                <p>为 <strong>车位 {selectedSlot}</strong> 设置一个唯一的会话标识。</p>
+                <div className="form-group" style={{ marginTop: '15px' }}>
+                    <label htmlFor="uniqueNameInput">隔离密码 / Unique Name:</label>
+                    <input
+                        type="text"
+                        id="uniqueNameInput"
+                        value={uniqueName}
+                        onChange={(e) => setUniqueName(e.target.value)}
+                        placeholder="例如: my-grok-session-01"
+                        autoFocus
+                    />
+                    <p className="hint">
+                        此标识用于区分和恢复您的专属 Grok 会话，请确保其唯一性。只要您记住此标识，下次登录即可恢复对话历史。
+                    </p>
+                </div>
+                <div className="modal-actions" style={{ marginTop: '20px' }}>
+                    <button onClick={handleConfirmLogin} disabled={!uniqueName.trim()}>
+                        打开并登录
+                    </button>
+                    <button onClick={() => { setShowModal(false); setUniqueName(''); }} className="secondary">
+                        取消
+                    </button>
+                </div>
+            </Modal>
         </main>
     );
 };

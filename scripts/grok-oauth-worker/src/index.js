@@ -46,14 +46,6 @@ export default {
   },
 };
 
-/**
- * 从 userToken 中提取车位号
- * 格式：grok_s{N}_xxxxx → 返回 N
- */
-function extractSlotNumber(userToken) {
-  const match = userToken.match(/^grok_s(\d+)_/);
-  return match ? parseInt(match[1], 10) : null;
-}
 
 /**
  * 标记车位为 busy（写入 KV，带 TTL 自动过期）
@@ -116,11 +108,6 @@ async function handleOAuth(request, env) {
       return jsonResponse({ code: 0, msg: '无效的 userToken' });
     }
 
-    // 提取车位号并标记为 busy
-    const slotNumber = extractSlotNumber(userToken);
-    if (slotNumber && slotNumber >= 1 && slotNumber <= TOTAL_SLOTS) {
-      await markSlotBusy(env, slotNumber, userToken);
-    }
 
     // 计算过期时间（1年后）
     const expireDate = new Date();
@@ -141,10 +128,19 @@ async function handleOAuth(request, env) {
 /**
  * 登录中转页
  */
-function handleLoginRedirect(url, env) {
+async function handleLoginRedirect(url, env) {
   const token = url.searchParams.get('token') || '';
+  const slotStr = url.searchParams.get('slot');
   if (!token) {
     return new Response('Missing token parameter', { status: 400 });
+  }
+
+  // 如果传递了 slot，立即将此车位标记为使用中
+  if (slotStr) {
+    const slotNumber = parseInt(slotStr, 10);
+    if (slotNumber >= 1 && slotNumber <= TOTAL_SLOTS) {
+      await markSlotBusy(env, slotNumber, token);
+    }
   }
 
   const html = `<!DOCTYPE html>
