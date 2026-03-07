@@ -40,6 +40,7 @@ const LoginPage: React.FC = () => {
       const res = await fetch(`${workerUrl}/api/auth/email/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email })
       });
       const data = await res.json();
@@ -68,6 +69,7 @@ const LoginPage: React.FC = () => {
       const res = await fetch(`${workerUrl}/api/auth/email/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, code })
       });
       const data = await res.json();
