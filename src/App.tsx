@@ -192,8 +192,8 @@ const AppContent: React.FC = () => {
               className={activeTab === 'claude' ? 'active' : ''}
               onClick={() => setActiveTab('claude')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.709 15.955l4.72-2.756.08-.046 2.698-1.575c.376-.22.376-.764 0-.983l-2.699-1.575-4.8-2.802a.545.545 0 0 0-.81.48v8.776c0 .404.436.656.79.48h.02zm8.444-.606l-3.064-1.79 3.064-1.788c.376-.22.376-.764 0-.983L10.09 9.001l3.064-1.789a.545.545 0 0 1 .81.48v6.175a.545.545 0 0 1-.81.48z" />
               </svg>
               Claude
             </button>
@@ -201,7 +201,9 @@ const AppContent: React.FC = () => {
               className={activeTab === 'grok' ? 'active' : ''}
               onClick={() => setActiveTab('grok')}
             >
-              <span className="grok-tab-icon">✦</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.04 2L9.88 12.36L2 22h1.776l6.888-8.436L16.248 22H22L13.716 11.07L21.08 2h-1.776l-6.384 7.824L7.792 2H2.04zM4.56 3.6h2.664l10.236 14.4h-2.664L4.56 3.6z" />
+              </svg>
               Grok
             </button>
           </div>

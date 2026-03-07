@@ -17,15 +17,8 @@ const GrokView: React.FC = () => {
 
     return (
         <main className="view-section" aria-labelledby="grok-view-title">
-            <div className="grok-header">
-                <h2 id="grok-view-title">
-                    <span className="grok-brand-icon">✦</span>
-                    Grok 镜像站
-                </h2>
-                <p className="grok-subtitle">
-                    选择一个车位，自动生成隔离令牌并登录 Grok
-                </p>
-            </div>
+            <h2 id="grok-view-title">Grok 镜像站</h2>
+            <h3>选择车位登录:</h3>
 
             <div className="grok-slot-grid">
                 {slots.map((num) => (
