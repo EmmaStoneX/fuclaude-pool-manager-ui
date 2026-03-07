@@ -57,29 +57,53 @@ function handleLoginRedirect(url, env) {
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>正在登录 Grok...</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(145deg, #e8f0fe, #d4e4fc, #eef2ff);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #242424;
     }
-    .loading {
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 48px 40px;
       text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      max-width: 380px;
+      width: 90%;
+    }
+    .icon {
+      margin: 0 auto 20px;
+      width: 48px;
+      height: 48px;
+      color: #242424;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 14px;
+      color: #616161;
+      margin-bottom: 24px;
     }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(249, 115, 22, 0.2);
-      border-top: 3px solid #F97316;
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top: 3px solid #0078D4;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      margin: 0 auto;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
@@ -87,9 +111,13 @@ function handleLoginRedirect(url, env) {
   </style>
 </head>
 <body>
-  <div class="loading">
+  <div class="card">
+    <svg class="icon" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815" />
+    </svg>
+    <h2>正在登录 Grok 镜像站</h2>
+    <p>正在为您自动认证，请稍候...</p>
     <div class="spinner"></div>
-    <p>正在登录 Grok 镜像站...</p>
   </div>
   <form id="loginForm" method="POST" action="${GROK_BASE_URL}/sign-in" style="display:none;">
     <input type="hidden" name="usertoken" value="${token}" />
